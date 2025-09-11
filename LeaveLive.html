@@ -97,8 +97,47 @@ function renderSnapshot(snapshot){
 // Load all reports
 function loadReports(){
   db.collection("leave_entries").orderBy("timestamp","desc")
-    .get()
-    .then(renderSnapshot);
+    .onSnapshot(snapshot=>{
+      reportList.innerHTML = "";
+      snapshot.forEach(docSnap=>{
+        const d = docSnap.data();
+        const status = d.status || "pending";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.date}</td>
+          <td>${d.staff}</td>
+          <td>${d.rcNo}</td>
+          <td>${d.leave}</td>
+          <td>${d.reason}</td>
+          <td>${d.duty}</td>
+          <td>${d.submitTime || "-"}</td>
+          <td>${status}</td>
+          <td>
+            <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
+            <button class="delete-btn">Delete</button>
+          </td>
+        `;
+        const applyBtn = row.querySelector(".apply-btn");
+        const deleteBtn = row.querySelector(".delete-btn");
+
+        // Apply button
+        applyBtn.onclick = async ()=>{
+          if(status !== "applied"){
+            await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
+            // No need to call loadReports() here; onSnapshot updates automatically
+          }
+        };
+
+        // Delete button
+        deleteBtn.onclick = async ()=>{
+          if(confirm("Delete this entry?")){
+            await db.collection("leave_entries").doc(docSnap.id).delete();
+          }
+        };
+
+        reportList.appendChild(row);
+      });
+    });
 }
 
 // Filter reports by date
