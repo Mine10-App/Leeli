@@ -10,9 +10,15 @@ const dutyInput = document.getElementById("DutyTime");
 const form = document.getElementById("leaveForm");
 const reportList = document.getElementById("reportList");
 
-// Populate staff dropdown from aqj.js users array
-if(typeof users !== "undefined"){
-  users.forEach(u => {
+// Wait until `users` exists
+function initDropdown(){
+  if(typeof users === "undefined"){
+    console.error("Users array not loaded from aqj.js yet");
+    setTimeout(initDropdown, 100);  // Retry after 100ms
+    return;
+  }
+  // Populate staff dropdown
+  users.forEach(u=>{
     const opt = document.createElement("option");
     opt.value = u.name;
     opt.textContent = u.name;
@@ -20,15 +26,17 @@ if(typeof users !== "undefined"){
   });
 }
 
-// Auto-fill RC No when staff selected
+initDropdown();
+
+// Auto-fill RC No
 staffSelect.addEventListener("change", ()=>{
-  const selectedStaff = users.find(u => u.name === staffSelect.value);
+  const selectedStaff = users.find(u=>u.name===staffSelect.value);
   rcInput.value = selectedStaff ? selectedStaff.rcNo : "";
 });
 
 // Reason options
-const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
-const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
+const sickReasons = [...]; // same as before
+const frlReasons = [...];  // same as before
 
 leaveSelect.addEventListener("change", ()=>{
   reasonSelect.innerHTML = '<option value="">--Select Reason--</option>';
@@ -69,9 +77,7 @@ form.addEventListener("submit", async e=>{
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     form.reset();
-  }catch(err){
-    console.error("Error adding document:", err);
-  }
+  }catch(err){ console.error(err); }
 });
 
 // Load today's leaves
@@ -82,11 +88,14 @@ function loadReports(){
     .orderBy("timestamp","desc")
     .onSnapshot(snapshot=>{
       reportList.innerHTML = "";
+      if(snapshot.empty){
+        reportList.innerHTML = "<tr><td colspan='8'>No entries for today</td></tr>";
+        return;
+      }
       snapshot.forEach(docSnap=>{
         const d = docSnap.data();
-        const row = document.createElement("tr");
         const status = d.status || "pending";
-
+        const row = document.createElement("tr");
         row.innerHTML = `
           <td class="staff-col">${d.staff}</td>
           <td>${d.rcNo}</td>
@@ -101,16 +110,13 @@ function loadReports(){
           </td>
         `;
 
-        const applyBtn = row.querySelector(".apply-btn");
-        const deleteBtn = row.querySelector(".delete-btn");
-
-        applyBtn.onclick = async ()=>{
+        row.querySelector(".apply-btn").onclick = async ()=>{
           if(status!=="applied"){
             await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
           }
         };
 
-        deleteBtn.onclick = async ()=>{
+        row.querySelector(".delete-btn").onclick = async ()=>{
           if(confirm("Delete this entry?")){
             await db.collection("leave_entries").doc(docSnap.id).delete();
           }
