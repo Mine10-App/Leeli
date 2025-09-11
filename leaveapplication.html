@@ -1,0 +1,34 @@
+Here’s the modified part of your script 👇
+
+// Load today's entries (only current user)
+function loadTodayEntries(){
+  const today = new Date().toISOString().split("T")[0];
+  db.collection("leave_entries")
+    .where("date","==",today)
+    .where("staff","==",loggedInUser.name)   // ✅ filter by current user
+    .onSnapshot(snapshot=>{
+      todayList.innerHTML = "";
+      snapshot.forEach(docSnap=>{
+        const d = docSnap.data();
+        const row = document.createElement("div");
+        row.className="entry-row";
+        row.innerHTML = `
+          <div>${d.date}</div>
+          <div>${d.staff}</div>
+          <div>${d.leave}</div>
+          <div>${d.duty}</div>
+          <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
+        `;
+        todayList.appendChild(row);
+      });
+
+      todayList.querySelectorAll(".delete-btn").forEach(btn=>{
+        btn.onclick = async ()=>{
+          if(confirm("Are you sure you want to delete this entry?")){
+            try { await db.collection("leave_entries").doc(btn.dataset.id).delete(); }
+            catch(err){ console.error("Delete failed:", err); }
+          }
+        };
+      });
+    }, err=>console.error("Snapshot error:", err));
+}
