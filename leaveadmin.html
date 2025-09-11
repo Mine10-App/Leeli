@@ -3,99 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <title>Leave Admin Entry</title>
+<link rel="stylesheet" href="style.css">
 <style>
   body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
-  h2 { text-align:center; }
+  h2 { text-align: center; margin-bottom: 20px; }
 
-  .container { max-width: 1200px; margin: 0 auto; }
+  .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; }
 
-  form { 
-    background: white; 
-    padding: 20px; 
-    border-radius: 10px; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-    margin-bottom: 20px; 
-    display: flex; 
-    gap: 10px; 
-    flex-wrap: wrap;
-    align-items: flex-end;
+  .form-container, .report-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    flex: 1;
+    overflow-x: auto;
   }
-  form label { flex: 0 0 120px; font-weight: bold; }
-  form select, form input { flex: 1 1 150px; padding: 6px; border-radius: 4px; border: 1px solid #ccc; }
-  form input[type="submit"] { background: #007bff; color: white; border: none; cursor: pointer; flex: 0 0 120px; }
+
+  form { display: flex; flex-direction: column; gap: 12px; }
+  form label { font-weight: bold; }
+  form select, form input { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 100%; }
+  form input[type="submit"] { background: #007bff; color: white; border: none; cursor: pointer; }
   form input[type="submit"]:hover { background: #0056b3; }
 
   table {
-    width: 100%; 
-    border-collapse: collapse; 
-    background: white; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
   }
-  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 13px; }
   th { background: #007bff; color: white; }
+  th.staff-col, td.staff-col { width: 180px; }
+  th.reason-col, td.reason-col { width: 220px; }
+  th.submit-col, td.submit-col { width: 90px; }
 
-  th.staff-col, td.staff-col { width: 200px; }   /* Wider staff column */
-  th.reason-col, td.reason-col { width: 250px; } /* Wider reason column */
-  th.submit-col, td.submit-col { width: 100px; }
-
-  button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+  button { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
   .apply-btn { background: #28a745; color: white; }
   .apply-btn.applied { background: gray; cursor: default; }
   .delete-btn { background: red; color: white; }
 
-  @media (max-width: 768px) {
-    form { flex-direction: column; align-items: stretch; }
-    form label { flex: none; }
-    form input, form select, form input[type="submit"] { flex: none; width: 100%; }
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <h2>Leave Admin Entry</h2>
+  <!-- Entry Form -->
+  <div class="form-container">
+    <h2>Leave Entry</h2>
+    <form id="leaveForm">
+      <label for="staffSelect">Staff:</label>
+      <select id="staffSelect" required>
+        <option value="">--Select Staff--</option>
+      </select>
 
-  <form id="leaveForm">
-    <label for="staffSelect">Staff:</label>
-    <select id="staffSelect" required>
-      <option value="">--Select Staff--</option>
-    </select>
+      <label for="LType">Leave Type:</label>
+      <select id="LType" required>
+        <option value="">--Choose--</option>
+        <option value="Sick Leave">Sick Leave</option>
+        <option value="FRL">FRL</option>
+        <option value="Absent">Absent</option>
+      </select>
 
-    <label for="LType">Leave Type:</label>
-    <select id="LType" required>
-      <option value="">--Choose--</option>
-      <option value="Sick Leave">Sick Leave</option>
-      <option value="FRL">FRL</option>
-      <option value="Absent">Absent</option>
-    </select>
+      <label for="Reason">Reason:</label>
+      <select id="Reason" required>
+        <option value="">--Choose--</option>
+      </select>
 
-    <label for="Reason">Reason:</label>
-    <select id="Reason" required>
-      <option value="">--Choose--</option>
-    </select>
+      <label for="DutyTime">Duty Time:</label>
+      <input type="time" id="DutyTime" required>
 
-    <label for="DutyTime">Duty Time:</label>
-    <input type="time" id="DutyTime" required>
+      <input type="submit" value="Add Leave">
+    </form>
+  </div>
 
-    <input type="submit" value="Add Leave">
-  </form>
-
-  <table>
-    <thead>
-      <tr>
-        <th class="staff-col">Staff</th>
-        <th>RC No</th>
-        <th>Leave</th>
-        <th class="reason-col">Reason</th>
-        <th>Duty</th>
-        <th class="submit-col">Submitted</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="reportList">
-      <tr><td colspan="8">Loading...</td></tr>
-    </tbody>
-  </table>
+  <!-- Report Table -->
+  <div class="report-container">
+    <h2>Today's Leaves</h2>
+    <table>
+      <thead>
+        <tr>
+          <th class="staff-col">Staff</th>
+          <th>RC No</th>
+          <th>Leave</th>
+          <th class="reason-col">Reason</th>
+          <th>Duty</th>
+          <th class="submit-col">Submitted</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="reportList">
+        <tr><td colspan="8">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Firebase SDK -->
@@ -103,126 +105,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
 <script src="aqj.js"></script>
-
-<script>
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Elements
-const staffSelect = document.getElementById("staffSelect");
-const leaveSelect = document.getElementById("LType");
-const reasonSelect = document.getElementById("Reason");
-const dutyInput = document.getElementById("DutyTime");
-const form = document.getElementById("leaveForm");
-const reportList = document.getElementById("reportList");
-
-// Populate staff dropdown from aqj.js users array
-users.forEach(u => {
-  const opt = document.createElement("option");
-  opt.value = u.name;
-  opt.textContent = u.name;
-  staffSelect.appendChild(opt);
-});
-
-// Reason options
-const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
-const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
-
-// Populate Reason dynamically
-leaveSelect.addEventListener("change", ()=>{
-  reasonSelect.innerHTML = '<option value="">--Choose--</option>';
-  let reasons = [];
-  if(leaveSelect.value === "Sick Leave") reasons = sickReasons;
-  else if(leaveSelect.value === "FRL") reasons = frlReasons;
-  reasons.forEach(r=>{
-    const opt = document.createElement("option");
-    opt.value = r;
-    opt.textContent = r;
-    reasonSelect.appendChild(opt);
-  });
-});
-
-// Submit form
-form.addEventListener("submit", async e=>{
-  e.preventDefault();
-  const staffName = staffSelect.value;
-  const staffObj = users.find(u=>u.name===staffName);
-  const leaveVal = leaveSelect.value;
-  const reasonVal = reasonSelect.value;
-  const dutyVal = dutyInput.value;
-
-  if(!staffName || !leaveVal || !reasonVal || !dutyVal) return;
-
-  const now = new Date();
-  const submitTime = now.toLocaleTimeString();
-
-  try {
-    await db.collection("leave_entries").add({
-      date: now.toISOString().split("T")[0],
-      staff: staffName,
-      rcNo: staffObj.rcNo,
-      leave: leaveVal,
-      reason: reasonVal,
-      duty: dutyVal,
-      submitTime: submitTime,
-      status: "pending",
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    form.reset();
-  } catch(err){
-    console.error("Error adding document:", err);
-  }
-});
-
-// Load today's entries
-function loadReports(){
-  const today = new Date().toISOString().split("T")[0];
-  db.collection("leave_entries")
-    .where("date","==",today)
-    .orderBy("timestamp","desc")
-    .onSnapshot(snapshot=>{
-      reportList.innerHTML = "";
-      snapshot.forEach(docSnap=>{
-        const d = docSnap.data();
-        const row = document.createElement("tr");
-        const status = d.status || "pending";
-
-        row.innerHTML = `
-          <td class="staff-col">${d.staff}</td>
-          <td>${d.rcNo}</td>
-          <td>${d.leave}</td>
-          <td class="reason-col">${d.reason}</td>
-          <td>${d.duty}</td>
-          <td class="submit-col">${d.submitTime || "-"}</td>
-          <td>${status}</td>
-          <td>
-            <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
-            <button class="delete-btn">Delete</button>
-          </td>
-        `;
-
-        const applyBtn = row.querySelector(".apply-btn");
-        const deleteBtn = row.querySelector(".delete-btn");
-
-        applyBtn.onclick = async ()=>{
-          if(status!=="applied"){
-            await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
-          }
-        };
-
-        deleteBtn.onclick = async ()=>{
-          if(confirm("Delete this entry?")){
-            await db.collection("leave_entries").doc(docSnap.id).delete();
-          }
-        };
-
-        reportList.appendChild(row);
-      });
-    });
-}
-
-// Initialize
-loadReports();
-</script>
+<script src="leaveAdmin.js"></script> <!-- Script separated -->
 </body>
 </html>
