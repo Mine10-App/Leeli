@@ -5,26 +5,9 @@
 <title>Leave Form - Entries</title>
 <style>
   body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
-  .container { 
-  display: flex; 
-  gap: 30px; 
-  width: 95%; 
-  max-width: 1400px; 
-}
-.form-container { 
-  flex: 1; 
-  background: #fff; 
-  padding: 20px; 
-  border-radius: 12px; 
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-}
-.entry-list { 
-  flex: 2; 
-  background: #fff; 
-  padding: 20px; 
-  border-radius: 12px; 
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-}
+  .container { display: flex; gap: 30px; width: 95%; max-width: 1400px; }
+  .form-container { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .entry-list { flex: 2; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
   form .form-row { display: flex; align-items: center; margin-bottom: 12px; }
   form label { width: 120px; font-weight: bold; margin-right: 10px; }
   form input, form select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
@@ -44,7 +27,7 @@
 
   <!-- Form -->
   <div class="form-container">
-    <h2 id="formTitle">Leave Form</h2>
+    <h2>Leave Form</h2>
     <form id="leaveForm">
       <div class="form-row">
         <label for="myDate">Date:</label>
@@ -52,7 +35,9 @@
       </div>
       <div class="form-row">
         <label for="recipient">Name:</label>
+        <!-- Dropdown for admin -->
         <select id="recipientSelect" style="display:none"></select>
+        <!-- Readonly input for staff -->
         <input type="text" id="recipientInput" readonly>
       </div>
       <div class="form-row">
@@ -84,7 +69,7 @@
 
   <!-- Entries -->
   <div class="entry-list">
-    <h2 id="entryTitle">Leave Entries</h2>
+    <h2>Leave Entries</h2>
     <div class="entry-header">
       <div>Date</div>
       <div>Staff</div>
@@ -110,15 +95,15 @@ const db = firebase.firestore();
 
 // Logged-in user
 const currentUser = localStorage.getItem("currentUser") || "";
-const loggedInUser = users.find(u => u.username === currentUser);
+const loggedInUser = users.find(u => u.name === currentUser);
 
-// Check if admin
-const isAdmin = loggedInUser && loggedInUser.role === "admin";
+// Check if admin (simple rule: username = admin, you can change this)
+const isAdmin = (currentUser === "admin");
 
-// Elements
+// Form elements
+const rcInput = document.getElementById("RcNo");
 const recipientSelect = document.getElementById("recipientSelect");
 const recipientInput = document.getElementById("recipientInput");
-const rcInput = document.getElementById("RcNo");
 const leaveSelect = document.getElementById("LType");
 const reasonSelect = document.getElementById("Reason");
 const dateInput = document.getElementById("myDate");
@@ -127,42 +112,28 @@ const form = document.getElementById("leaveForm");
 const messageDiv = document.getElementById("message");
 const todayList = document.getElementById("todayList");
 
-// Titles
-if(isAdmin){
-  document.getElementById("formTitle").innerText = "Admin Leave Entry";
-  document.getElementById("entryTitle").innerText = "Today's Leave Report (All Staff)";
-} else {
-  recipientInput.readOnly = true;
-  rcInput.readOnly = true;
-}
-
-// Auto-fill for staff
-if(loggedInUser && !isAdmin){
+// Auto-fill name/RCNo
+if (loggedInUser && !isAdmin) {
   recipientInput.style.display = "block";
   recipientSelect.style.display = "none";
   recipientInput.value = loggedInUser.name;
   rcInput.value = loggedInUser.rcNo;
 }
 
-// Dropdown for admin
-if(isAdmin){
+if (isAdmin) {
   recipientInput.style.display = "none";
   recipientSelect.style.display = "block";
-  rcInput.readOnly = true;
-
-  // Populate staff list from aqj.js (users array)
   users.forEach(u => {
     const opt = document.createElement("option");
-    opt.value = u.username;   // use username for value
-    opt.textContent = u.name; // show full name
+    opt.value = u.name;
+    opt.textContent = u.name;
     recipientSelect.appendChild(opt);
   });
-
-  // Auto-fill RCNo when selecting staff
   recipientSelect.addEventListener("change", () => {
-    const selUser = users.find(u => u.username === recipientSelect.value);
+    const selUser = users.find(u => u.name === recipientSelect.value);
     rcInput.value = selUser ? selUser.rcNo : "";
   });
+  recipientSelect.dispatchEvent(new Event("change"));
 }
 
 // Reason options
@@ -191,20 +162,18 @@ form.addEventListener("submit", async e=>{
   messageDiv.innerText = "";
 
   const dateVal = dateInput.value;
-  const staffVal = isAdmin 
-      ? (users.find(u => u.username === recipientSelect.value)?.name || "") 
-      : recipientInput.value;
-  const rcVal = rcInput.value.trim();
   const leaveVal = leaveSelect.value;
   const reasonVal = reasonSelect.value;
   const dutyVal = dutyInput.value;
 
-  if(!dateVal || !staffVal || !rcVal || !leaveVal || !reasonVal || !dutyVal) return;
+  if(!dateVal || !leaveVal || !reasonVal || !dutyVal) return;
 
   const now = new Date();
+  let staffName = isAdmin ? recipientSelect.value : loggedInUser.name;
+  let staffRcNo = rcInput.value;
 
-  // Sick leave late report check (only for staff)
-  if(!isAdmin && leaveVal === "Sick Leave"){
+  // Sick leave late report check
+  if(leaveVal === "Sick Leave"){
     const [dutyH, dutyM] = dutyVal.split(":").map(Number);
     const dutyDateTime = new Date(dateVal);
     dutyDateTime.setHours(dutyH, dutyM, 0, 0);
@@ -218,8 +187,8 @@ form.addEventListener("submit", async e=>{
   try {
     await db.collection("leave_entries").add({
       date: dateVal,
-      staff: staffVal,
-      rcNo: rcVal,
+      staff: staffName,
+      rcNo: staffRcNo,
       leave: leaveVal,
       reason: reasonVal,
       duty: dutyVal,
@@ -227,9 +196,12 @@ form.addEventListener("submit", async e=>{
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     form.reset();
+
     if(!isAdmin){
       recipientInput.value = loggedInUser.name;
       rcInput.value = loggedInUser.rcNo;
+    } else {
+      recipientSelect.dispatchEvent(new Event("change"));
     }
   } catch(err){
     console.error("Error adding document:", err);
@@ -239,15 +211,9 @@ form.addEventListener("submit", async e=>{
 // Load entries
 function loadEntries(){
   let query = db.collection("leave_entries");
-
-  if(isAdmin){
-    // Admin: only today's entries
-    const today = new Date().toISOString().split("T")[0];
-    query = query.where("date","==",today);
-  } else {
+  if(!isAdmin && loggedInUser){
     query = query.where("staff","==",loggedInUser.name);
   }
-
   query.onSnapshot(snapshot=>{
     todayList.innerHTML = "";
     snapshot.forEach(docSnap=>{
