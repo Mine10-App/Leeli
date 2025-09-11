@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Duty Change Request</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .top-buttons button { padding: 5px 10px; margin-right: 5px; font-size: 0.9rem; }
+  .form-row { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="form-container">
+  <h2>Duty Change Request</h2>
+
+  <div class="top-buttons">
+    <button onclick="goToDashboard()">Dashboard</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <form id="dutyChangeForm">
+    <div class="form-row">
+      <label for="requestedStaff">Requested Staff:</label>
+      <input type="text" id="requestedStaff" readonly>
+    </div>
+
+    <div class="form-row">
+      <label for="recipient">Recipient Staff:</label>
+      <select id="recipient" required>
+        <option value="">--Select--</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="date">Date:</label>
+      <input type="date" id="date" required>
+    </div>
+
+    <div class="form-row">
+      <label for="dutyTime">Duty Time:</label>
+      <input type="time" id="dutyTime" required>
+    </div>
+
+    <button type="submit">Send Request</button>
+  </form>
+
+  <div id="confirmation" style="margin-top:15px; color:green;"></div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="sca.js"></script> 
+<script src="aqj.js"></script> 
+
+<script>
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const currentUser = localStorage.getItem("currentUser");
+  if (!currentUser) {
+    alert("Please login first!");
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("requestedStaff").value = currentUser;
+  }
+
+  function goToDashboard(){
+    window.location.href = "dashboard.html";
+  }
+
+  function logout(){
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("currentRCNo");
+    window.location.href = "index.html";
+  }
+
+  // Populate recipient dropdown from aqj.js users array
+  const recipientSelect = document.getElementById("recipient");
+  users.forEach(user => {
+    if(user.name !== currentUser){
+      const option = document.createElement("option");
+      option.value = user.name;
+      option.textContent = user.name;
+      recipientSelect.appendChild(option);
+    }
+  });
+
+  // Submit duty change request with limits
+  document.getElementById("dutyChangeForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const requestedStaff = document.getElementById("requestedStaff").value;
+    const recipient = document.getElementById("recipient").value;
+    const dateInput = document.getElementById("date").value;
+    const dutyTime = document.getElementById("dutyTime").value;
+
+    if(!recipient){
+      alert("Please select a recipient staff.");
+      return;
+    }
+    if(!dateInput){
+      alert("Please select a date.");
+      return;
+    }
+
+    // Convert to Firestore Timestamp
+    const reqDate = new Date(dateInput);
+    const reqTimestamp = firebase.firestore.Timestamp.fromDate(reqDate);
+
+    // Get start & end for half-month period
+    const year = reqDate.getFullYear();
+    const month = reqDate.getMonth();
+
+    let startDate, endDate;
+    if (reqDate.getDate() <= 15) {
+      startDate = new Date(year, month, 1);
+      endDate   = new Date(year, month, 15, 23, 59, 59);
+    } else {
+      startDate = new Date(year, month, 16);
+      endDate   = new Date(year, month + 1, 0, 23, 59, 59);
+    }
+
+    const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
+    const endTimestamp   = firebase.firestore.Timestamp.fromDate(endDate);
+
+    try {
+      // 1️⃣ Check if this staff already made a request for this same date
+      const sameDateSnap = await db.collection("dutyRequests")
+        .where("requestedStaff", "==", requestedStaff)
+        .where("date", "==", reqTimestamp)
+        .get();
+
+      if (!sameDateSnap.empty) {
+        alert("⚠️ You already made a request for this date.");
+        return;
+      }
+
+      // 2️⃣ Count how many requests this staff already made in the current half
+      const snapshot = await db.collection("dutyRequests")
+        .where("requestedStaff", "==", requestedStaff)
+        .where("date", ">=", startTimestamp)
+        .where("date", "<=", endTimestamp)
+        .get();
+
+      if (snapshot.size >= 2) {
+        alert("⚠️ You can only make 2 requests per half-month (1–15 or 16–end).");
+        return;
+      }
+
+      // 3️⃣ If allowed, add new request
+      await db.collection("dutyRequests").add({
+        requestedStaff,
+        recipient,
+        date: reqTimestamp,   // store as Timestamp
+        dutyTime,
+        status: "pending",
+        applied: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      document.getElementById("confirmation").innerText = `✅ Request sent to ${recipient}.`;
+      document.getElementById("dutyChangeForm").reset();
+      document.getElementById("requestedStaff").value = currentUser;
+
+    } catch (error) {
+      console.error("Error checking/adding request:", error);
+      alert("Error sending request. Check console.");
+    }
+  });
+</script>
+
+
+</body>
+</html>
+
+

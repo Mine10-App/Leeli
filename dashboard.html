@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; }
+  .form-container { max-width: 950px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .header h2 { margin: 0; }
+
+  .top-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .top-buttons .btn {
+    padding: 8px 9px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 2px;
+    background-color: #3f413f;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .top-buttons .btn:hover { background-color: #0056b3; }
+  .top-buttons a {
+    color: #007BFF;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  th { background: #007BFF; color: #fff; text-align: left; padding: 10px; font-size: 0.95rem; }
+  td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: #f1faff; }
+
+  .status-pending { color: #ff9800; font-weight: bold; }
+  .status-accepted { color: #4CAF50; font-weight: bold; }
+  .status-rejected { color: #f44336; font-weight: bold; }
+
+  .accept { background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+  .reject { background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+  .delete { background-color: #FF5722; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+  button:hover { opacity: 0.85; }
+
+  @media (max-width: 768px) {
+    table, th, td { font-size: 0.85rem; }
+    .top-buttons .btn, .top-buttons a { font-size: 0.85rem; padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="form-container">
+  <div class="header">
+    <h2>Welcome, <span id="userName"></span></h2>
+    <div class="top-buttons">
+      <button class="btn" onclick="goToDutyChange()">Request Duty Change</button>
+      <button class="btn" onclick="logout()">Logout</button>
+      <a href="change-password.html">Change Password</a>
+    </div>
+  </div>
+
+  <h3>Requests Assigned To You</h3>
+  <div id="incomingRequests"><p>Loading...</p></div>
+
+  <h3>Requests Sent By You</h3>
+  <div id="sentRequests"><p>Loading...</p></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="sca.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const currentUser = localStorage.getItem("currentUser");
+if(!currentUser){
+  alert("Please login first!");
+  window.location.href = "index.html";
+} else {
+  document.getElementById("userName").innerText = currentUser;
+}
+
+function goToDutyChange(){ window.location.href = "dutychange.html"; }
+function logout(){ localStorage.removeItem("currentUser"); localStorage.removeItem("currentRCNo"); window.location.href = "login.html"; }
+
+function loadRequests() {
+  const incomingContainer = document.getElementById("incomingRequests");
+  const sentContainer = document.getElementById("sentRequests");
+
+  incomingContainer.innerHTML = "<p>Loading...</p>";
+  sentContainer.innerHTML = "<p>Loading...</p>";
+
+  db.collection("dutyRequests").orderBy("date").get().then(snapshot => {
+    let incomingHTML = `
+      <table>
+        <tr><th>From</th><th>Date</th><th>Duty Time</th><th>Status</th><th>Action</th></tr>`;
+    let sentHTML = `
+      <table>
+        <tr><th>To</th><th>Date</th><th>Duty Time</th><th>Status</th><th>Action</th></tr>`;
+
+    snapshot.forEach(doc => {
+      const req = doc.data();
+      const id = doc.id;
+      const dateStr = req.date && req.date.toDate ? req.date.toDate().toISOString().split("T")[0] : req.date;
+      const timeStr = req.dutyTime || "";
+
+      let statusClass = "";
+      if(req.status === "pending") statusClass = "status-pending";
+      else if(req.status === "accepted") statusClass = "status-accepted";
+      else if(req.status === "rejected") statusClass = "status-rejected";
+
+      if(req.recipient === currentUser){
+        incomingHTML += `
+          <tr>
+            <td>${req.requestedStaff}</td>
+            <td>${dateStr}</td>
+            <td>${timeStr}</td>
+            <td class="${statusClass}">${req.status}</td>
+            <td>${req.status === "pending" ? `
+              <button class="accept" onclick="acceptRequest('${id}')">Accept</button>
+              <button class="reject" onclick="rejectRequest('${id}')">Reject</button>` : "-"}</td>
+          </tr>`;
+      }
+
+      if(req.requestedStaff === currentUser){
+        sentHTML += `
+          <tr>
+            <td>${req.recipient}</td>
+            <td>${dateStr}</td>
+            <td>${timeStr}</td>
+            <td class="${statusClass}">${req.status}</td>
+            <td>${!req.applied ? `
+              <button class="delete" onclick="cancelRequest('${id}')">Cancel</button>` : "Applied"}</td>
+          </tr>`;
+      }
+    });
+
+    incomingHTML += "</table>";
+    sentHTML += "</table>";
+
+    incomingContainer.innerHTML = incomingHTML || "<p>No pending requests.</p>";
+    sentContainer.innerHTML = sentHTML || "<p>No requests sent.</p>";
+  });
+}
+
+function acceptRequest(id){
+  db.collection("dutyRequests").doc(id).update({status: "accepted"}).then(() => { alert("Request accepted!"); loadRequests(); });
+}
+function rejectRequest(id){
+  db.collection("dutyRequests").doc(id).update({status: "rejected"}).then(() => { alert("Request rejected!"); loadRequests(); });
+}
+function cancelRequest(id){
+  if(confirm("Are you sure you want to cancel this request?")) {
+    db.collection("dutyRequests").doc(id).get().then(doc => {
+      if(doc.exists && !doc.data().applied){
+        db.collection("dutyRequests").doc(id).delete().then(() => { loadRequests(); });
+      } else { alert("Cannot cancel an applied request!"); }
+    });
+  }
+}
+
+loadRequests();
+</script>
+</body>
+</html>
+
+
