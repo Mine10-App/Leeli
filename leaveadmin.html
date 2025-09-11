@@ -8,15 +8,42 @@
   .container { display: flex; gap: 30px; width: 95%; max-width: 1200px; }
   .form-container { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
   .entry-list { flex: 2; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
   form .form-row { display: flex; align-items: center; margin-bottom: 12px; }
   form label { width: 120px; font-weight: bold; margin-right: 10px; }
   form input, form select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
   form input[type="submit"] { background: #007bff; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; }
   form input[type="submit"]:hover { background: #0056b3; }
+
   h2 { text-align: center; margin-bottom: 15px; }
+
   .entry-header, .entry-row { display: flex; gap: 10px; padding: 6px 0; align-items: center; }
-  .entry-header div { font-weight: bold; text-align: center; border-bottom: 2px solid #007bff; }
-  .entry-row div { text-align: center; background: #f1f1f1; padding: 5px; border-radius: 5px; font-size: 14px; }
+  .entry-header div {
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #007bff;
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 5px;
+    background: none;
+  }
+  .entry-row div {
+    text-align: center;
+    background: #f1f1f1;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  /* Column widths */
+  .entry-header div:nth-child(1), .entry-row div:nth-child(1) { flex:1; }   /* Date */
+  .entry-header div:nth-child(2), .entry-row div:nth-child(2) { flex:2; text-align:left; } /* Staff */
+  .entry-header div:nth-child(3), .entry-row div:nth-child(3) { flex:1; }   /* RCNo */
+  .entry-header div:nth-child(4), .entry-row div:nth-child(4) { flex:1; }   /* Leave */
+  .entry-header div:nth-child(5), .entry-row div:nth-child(5) { flex:2; text-align:left; } /* Reason */
+  .entry-header div:nth-child(6), .entry-row div:nth-child(6) { flex:1; }   /* Duty */
+  .entry-header div:nth-child(7), .entry-row div:nth-child(7) { flex:0.7; } /* Action */
+
   .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
   #message { color: red; margin-top: 10px; text-align: center; }
 </style>
@@ -70,13 +97,13 @@
   <div class="entry-list">
     <h2>Leave Entries (Today)</h2>
     <div class="entry-header">
-      <div style="flex:1;">Date</div>
-      <div style="flex:2;">Staff</div>
-      <div style="flex:1;">RCNo</div>
-      <div style="flex:1;">Leave</div>
-      <div style="flex:2;">Reason</div>
-      <div style="flex:1;">Duty</div>
-      <div style="flex:0.7;">Action</div>
+      <div>Date</div>
+      <div>Staff</div>
+      <div>RCNo</div>
+      <div>Leave</div>
+      <div>Reason</div>
+      <div>Duty</div>
+      <div>Action</div>
     </div>
     <div id="todayList"></div>
   </div>
@@ -168,6 +195,7 @@ form.addEventListener("submit", async e => {
   }
 });
 
+// Load today's entries
 function loadEntries() {
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -178,32 +206,11 @@ function loadEntries() {
       todayList.innerHTML = "";
       snapshot.forEach(docSnap => {
         const d = docSnap.data();
-        // Only show entries for today
         if (d.date === todayStr) {
           const row = document.createElement("div");
           row.className = "entry-row";
           row.innerHTML = `
             <div>${d.date}</div>
-            <div style="text-align:left;">${d.staff}</div>
+            <div>${d.staff}</div>
             <div>${d.rcNo}</div>
             <div>${d.leave}</div>
-            <div style="text-align:left;">${d.reason}</div>
-            <div>${d.duty}</div>
-            <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
-          `;
-          todayList.appendChild(row);
-
-          row.querySelector(".delete-btn").onclick = async () => {
-            if (confirm("Delete this entry?")) {
-              await db.collection("leave_entries").doc(docSnap.id).delete();
-            }
-          };
-        }
-      });
-    });
-}
-
-loadEntries();
-</script>
-</body>
-</html>
