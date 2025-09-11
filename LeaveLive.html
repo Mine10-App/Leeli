@@ -168,13 +168,9 @@ form.addEventListener("submit", async e => {
   }
 });
 
-// Load today's entries
 function loadEntries(){
-  const startOfDay = new Date();
-  startOfDay.setHours(0,0,0,0);
-
-  const endOfDay = new Date();
-  endOfDay.setHours(23,59,59,999);
+  const startOfDay = firebase.firestore.Timestamp.fromDate(new Date(new Date().setHours(0,0,0,0)));
+  const endOfDay = firebase.firestore.Timestamp.fromDate(new Date(new Date().setHours(23,59,59,999)));
 
   db.collection("leave_entries")
     .where("timestamp", ">=", startOfDay)
@@ -197,7 +193,6 @@ function loadEntries(){
         `;
         todayList.appendChild(row);
 
-        // Delete button
         row.querySelector(".delete-btn").onclick = async () => {
           if(confirm("Delete this entry?")){
             await db.collection("leave_entries").doc(docSnap.id).delete();
