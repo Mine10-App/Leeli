@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Duty Changes</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f9f9f9; }
+  h2 { margin-left: 20px; color: #333; }
+
+ .filters {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 20px;
+}
+
+.filters input[type="date"],
+.filters input[type="text"] {
+  padding: 4px 6px;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 0 0 auto;  /* Prevent input from stretching */
+}
+
+.filters button {
+  padding: 3px 6px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+  flex: 0 0 auto;       /* Prevent button from stretching */
+  width: auto;          /* Button width fits text */
+}
+.filters button:hover { background-color: #0056b3; }
+
+
+  /* Table */
+  table {
+    width: 95%;
+    margin: 0 auto 20px;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 0.9rem; }
+  th { background-color: #007BFF; color: #fff; }
+  tr:hover { background: #f1faff; }
+
+  /* Action buttons inside table */
+  .table-btn {
+    padding: 3px 6px;        /* Small button */
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 2px;
+    transition: 0.2s;
+  }
+  .apply-btn { background-color: #4CAF50; color: white; }
+  .apply-btn:hover { background-color: #3e8e41; }
+  .delete-btn { background-color: #FF5722; color: white; }
+  .delete-btn:hover { background-color: #e64a19; }
+
+  @media (max-width: 768px) {
+    table, th, td { font-size: 0.85rem; }
+    .filters input, .filters button { font-size: 0.75rem; padding: 3px 5px; }
+  }
+</style>
+</head>
+<body>
+<h2>Duty Change</h2>
+
+<div class="filters">
+  <label>Date: <input type="date" id="filterDate"></label>
+  <label>Request Staff: <input type="text" id="filterStaff" placeholder="Name"></label>
+  <button onclick="loadAcceptedRequests()">Filter</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Request Staff</th>
+      <th>Recipient</th>
+      <th>Date</th>
+      <th>Duty Time</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="requestsTable">
+    <tr><td colspan="6">Loading...</td></tr>
+  </tbody>
+</table>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="sca.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function loadAcceptedRequests() {
+    const tableBody = document.getElementById("requestsTable");
+    const filterDate = document.getElementById("filterDate").value;
+    const filterStaff = document.getElementById("filterStaff").value.toLowerCase();
+
+    tableBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+    db.collection("dutyRequests").where("status", "==", "accepted").get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          tableBody.innerHTML = "<tr><td colspan='6'>No accepted requests found.</td></tr>";
+          return;
+        }
+
+        let rows = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const requestDate = data.date instanceof firebase.firestore.Timestamp
+            ? data.date.toDate().toISOString().split("T")[0]
+            : (data.date || "");
+          const staffName = (data.requestedStaff || "").toLowerCase();
+
+          if ((filterDate && filterDate !== requestDate) ||
+              (filterStaff && !staffName.includes(filterStaff))) return;
+
+          rows += `
+            <tr>
+              <td>${data.requestedStaff || ""}</td>
+              <td>${data.recipient || ""}</td>
+              <td>${requestDate}</td>
+              <td>${data.dutyTime || ""}</td>
+              <td>${data.status || ""}</td>
+              <td>
+                ${data.applied ? 'Applied' : `<button class="table-btn apply-btn" onclick="markApplied('${doc.id}')">Apply</button>`}
+                <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')" ${data.applied ? 'disabled' : ''}>Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableBody.innerHTML = rows || "<tr><td colspan='6'>No accepted requests found (after filters).</td></tr>";
+      })
+      .catch(err => {
+        console.error("Error fetching requests:", err);
+        tableBody.innerHTML = "<tr><td colspan='6'>Error loading requests.</td></tr>";
+      });
+}
+
+function markApplied(id) {
+    db.collection("dutyRequests").doc(id).update({ applied: true })
+      .then(() => loadAcceptedRequests())
+      .catch(err => console.error("Error updating:", err));
+}
+
+function deleteRequest(id) {
+    db.collection("dutyRequests").doc(id).delete()
+      .then(() => loadAcceptedRequests())
+      .catch(err => console.error("Error deleting:", err));
+}
+
+// Initial load
+loadAcceptedRequests();
+</script>
+</body>
+</html>
