@@ -3,158 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <title>Leave Admin Entry</title>
-<link rel="stylesheet" href="leave-style.css">
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #eef2f7;
-  }
+body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#eef2f7; display:flex; gap:20px; }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 10px;
-  }
+.container { display:flex; width:100%; gap:20px; }
+.entry-container { flex:1; background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.report-container { flex:2; background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
 
-  .container {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start; /* top-aligned */
-    max-width: 1200px;
-    margin: 0;
-  }
+h2 { text-align:center; margin-bottom:15px; }
 
-  /* Entry form */
-  .form-container {
-    flex: 1;             /* smaller column */
-    max-width: 400px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
+form .form-row { margin-bottom:10px; display:flex; align-items:center; }
+form label { width:120px; font-weight:bold; margin-right:10px; }
+form input, form select { flex:1; padding:6px; border-radius:4px; border:1px solid #ccc; }
+form input[type="submit"] { background:#007bff; color:#fff; border:none; cursor:pointer; border-radius:4px; padding:8px; width:100%; }
+form input[type="submit"]:hover { background:#0056b3; }
 
-  form .form-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-  }
+table { width:100%; border-collapse: collapse; margin-top:10px; }
+th, td { border:1px solid #ccc; padding:6px; text-align:center; font-size:14px; }
+th { background:#007bff; color:white; }
+tr:hover { background:#f1faff; }
 
-  form label {
-    width: 120px;
-    font-weight: bold;
-    margin-right: 10px;
-  }
+.staff-col { min-width:140px; }
+.reason-col { min-width:200px; }
+.submit-col { min-width:90px; }
 
-  form input, form select {
-    flex: 1;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
+.table-btn { padding:3px 6px; font-size:12px; border:none; border-radius:3px; cursor:pointer; margin:2px; }
+.apply-btn { background:#28a745; color:#fff; }
+.apply-btn.applied { background:gray; cursor:default; }
+.delete-btn { background:red; color:#fff; }
 
-  form input[type="submit"] {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 100%;
-  }
-
-  form input[type="submit"]:hover {
-    background: #0056b3;
-  }
-
-  #message {
-    color: red;
-    margin-top: 10px;
-  }
-
-  /* Report table */
-  .report-container {
-    flex: 2;           /* bigger column */
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-    font-size: 14px;
-  }
-
-  th {
-    background: #007bff;
-    color: white;
-  }
-
-  /* Make specific columns wider */
-  th:nth-child(1), td:nth-child(1) { width: 120px; }  /* Date */
-  th:nth-child(2), td:nth-child(2) { width: 150px; }  /* Staff */
-  th:nth-child(5), td:nth-child(5) { width: 200px; }  /* Reason */
-
-  button {
-    padding: 4px 8px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 2px;
-  }
-
-  .apply-btn {
-    background: #28a745;
-    color: white;
-  }
-
-  .apply-btn.applied {
-    background: gray;
-    cursor: default;
-  }
-
-  .delete-btn {
-    background: red;
-    color: white;
-  }
-
-  @media (max-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
-
-    .form-container, .report-container {
-      max-width: 100%;
-    }
-  }
+@media(max-width:768px){ .container{flex-direction:column;} }
 </style>
 </head>
 <body>
 
 <div class="container">
+
   <!-- Entry Form -->
-  <div class="form-container">
+  <div class="entry-container">
     <h2>Leave Entry</h2>
     <form id="leaveForm">
       <div class="form-row">
-        <label for="myDate">Date:</label>
-        <input type="date" id="myDate" required>
-      </div>
-      <div class="form-row">
         <label for="StaffName">Staff:</label>
         <select id="StaffName" required>
-          <option value="">--Select--</option>
+          <option value="">--Select Staff--</option>
         </select>
       </div>
       <div class="form-row">
@@ -164,7 +56,7 @@
       <div class="form-row">
         <label for="LType">Leave Type:</label>
         <select id="LType" required>
-          <option value="">--Choose--</option>
+          <option value="">--Select Leave--</option>
           <option value="Sick Leave">Sick Leave</option>
           <option value="FRL">FRL</option>
           <option value="Absent">Absent</option>
@@ -173,48 +65,47 @@
       <div class="form-row">
         <label for="Reason">Reason:</label>
         <select id="Reason" required>
-          <option value="">--Choose--</option>
+          <option value="">--Select Reason--</option>
         </select>
       </div>
       <div class="form-row">
         <label for="DutyTime">Duty Time:</label>
         <input type="time" id="DutyTime" required>
       </div>
-      <input type="submit" value="Add Leave Entry">
+      <input type="submit" value="Add Leave">
     </form>
-    <div id="message"></div>
   </div>
 
-  <!-- Report Table -->
+  <!-- Report -->
   <div class="report-container">
-    <h2>Today's Leave Report</h2>
+    <h2>Today's Leaves</h2>
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Staff</th>
+          <th class="staff-col">Staff</th>
           <th>RC No</th>
           <th>Leave</th>
-          <th>Reason</th>
+          <th class="reason-col">Reason</th>
           <th>Duty</th>
-          <th>Submitted</th>
+          <th class="submit-col">Submitted</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="reportList">
-        <tr><td colspan="9">Loading...</td></tr>
+        <tr><td colspan="8">Loading...</td></tr>
       </tbody>
     </table>
   </div>
+
 </div>
 
-<!-- Scripts -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
-  <script src="aqj.js"></script>
-<script src="leave-admin.js"></script>
+<script src="aqj.js"></script>
+<script src="leave_admin.js"></script>  <!-- External script -->
 
 </body>
 </html>
