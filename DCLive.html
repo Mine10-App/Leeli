@@ -22,7 +22,7 @@
   font-size: 0.85rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  flex: 0 0 auto;  /* Prevent input from stretching */
+  flex: 0 0 auto;
 }
 
 .filters button {
@@ -34,11 +34,10 @@
   color: white;
   cursor: pointer;
   transition: 0.2s;
-  flex: 0 0 auto;       /* Prevent button from stretching */
-  width: auto;          /* Button width fits text */
+  flex: 0 0 auto;
+  width: auto;
 }
 .filters button:hover { background-color: #0056b3; }
-
 
   /* Table */
   table {
@@ -54,9 +53,9 @@
   th { background-color: #007BFF; color: #fff; }
   tr:hover { background: #f1faff; }
 
-  /* Action buttons inside table */
+  /* Action buttons */
   .table-btn {
-    padding: 3px 6px;        /* Small button */
+    padding: 3px 6px;
     font-size: 0.75rem;
     border: none;
     border-radius: 3px;
@@ -142,7 +141,7 @@ function loadAcceptedRequests() {
               <td>${data.status || ""}</td>
               <td>
                 ${data.applied ? 'Applied' : `<button class="table-btn apply-btn" onclick="markApplied('${doc.id}')">Apply</button>`}
-                <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')" ${data.applied ? 'disabled' : ''}>Delete</button>
+                <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')">Delete</button>
               </td>
             </tr>
           `;
@@ -163,9 +162,11 @@ function markApplied(id) {
 }
 
 function deleteRequest(id) {
-    db.collection("dutyRequests").doc(id).delete()
-      .then(() => loadAcceptedRequests())
-      .catch(err => console.error("Error deleting:", err));
+    if (confirm("Are you sure you want to delete this request?")) {
+        db.collection("dutyRequests").doc(id).delete()
+          .then(() => loadAcceptedRequests())
+          .catch(err => console.error("Error deleting:", err));
+    }
 }
 
 // Initial load
