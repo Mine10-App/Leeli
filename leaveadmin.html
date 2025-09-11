@@ -5,8 +5,26 @@
 <title>Leave Form - Entries</title>
 <style>
   body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
-  .container { display: flex; gap: 30px; width: 95%; max-width: 1400px; }
-  .form-container, .entry-list { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .container { 
+  display: flex; 
+  gap: 30px; 
+  width: 95%; 
+  max-width: 1400px; 
+}
+.form-container { 
+  flex: 1; 
+  background: #fff; 
+  padding: 20px; 
+  border-radius: 12px; 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+}
+.entry-list { 
+  flex: 2; 
+  background: #fff; 
+  padding: 20px; 
+  border-radius: 12px; 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+}
   form .form-row { display: flex; align-items: center; margin-bottom: 12px; }
   form label { width: 120px; font-weight: bold; margin-right: 10px; }
   form input, form select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
@@ -34,11 +52,12 @@
       </div>
       <div class="form-row">
         <label for="recipient">Name:</label>
-        <input type="text" id="recipient">
+        <select id="recipientSelect" style="display:none"></select>
+        <input type="text" id="recipientInput" readonly>
       </div>
       <div class="form-row">
         <label for="RcNo">RCNo:</label>
-        <input type="text" id="RcNo">
+        <input type="text" id="RcNo" readonly>
       </div>
       <div class="form-row">
         <label for="LType">Leave Type:</label>
@@ -91,14 +110,15 @@ const db = firebase.firestore();
 
 // Logged-in user
 const currentUser = localStorage.getItem("currentUser") || "";
-const loggedInUser = users.find(u => u.name === currentUser);
+const loggedInUser = users.find(u => u.username === currentUser);
 
 // Check if admin
 const isAdmin = loggedInUser && loggedInUser.role === "admin";
 
 // Elements
+const recipientSelect = document.getElementById("recipientSelect");
+const recipientInput = document.getElementById("recipientInput");
 const rcInput = document.getElementById("RcNo");
-const recipientInput = document.getElementById("recipient");
 const leaveSelect = document.getElementById("LType");
 const reasonSelect = document.getElementById("Reason");
 const dateInput = document.getElementById("myDate");
@@ -116,10 +136,33 @@ if(isAdmin){
   rcInput.readOnly = true;
 }
 
-// Auto-fill recipient & RCNo for staff
+// Auto-fill for staff
 if(loggedInUser && !isAdmin){
+  recipientInput.style.display = "block";
+  recipientSelect.style.display = "none";
   recipientInput.value = loggedInUser.name;
   rcInput.value = loggedInUser.rcNo;
+}
+
+// Dropdown for admin
+if(isAdmin){
+  recipientInput.style.display = "none";
+  recipientSelect.style.display = "block";
+  rcInput.readOnly = true;
+
+  // Populate staff list from aqj.js (users array)
+  users.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.username;   // use username for value
+    opt.textContent = u.name; // show full name
+    recipientSelect.appendChild(opt);
+  });
+
+  // Auto-fill RCNo when selecting staff
+  recipientSelect.addEventListener("change", () => {
+    const selUser = users.find(u => u.username === recipientSelect.value);
+    rcInput.value = selUser ? selUser.rcNo : "";
+  });
 }
 
 // Reason options
@@ -148,7 +191,9 @@ form.addEventListener("submit", async e=>{
   messageDiv.innerText = "";
 
   const dateVal = dateInput.value;
-  const staffVal = recipientInput.value.trim();
+  const staffVal = isAdmin 
+      ? (users.find(u => u.username === recipientSelect.value)?.name || "") 
+      : recipientInput.value;
   const rcVal = rcInput.value.trim();
   const leaveVal = leaveSelect.value;
   const reasonVal = reasonSelect.value;
@@ -158,7 +203,7 @@ form.addEventListener("submit", async e=>{
 
   const now = new Date();
 
-  // Sick leave late report check (only for staff, not admin)
+  // Sick leave late report check (only for staff)
   if(!isAdmin && leaveVal === "Sick Leave"){
     const [dutyH, dutyM] = dutyVal.split(":").map(Number);
     const dutyDateTime = new Date(dateVal);
