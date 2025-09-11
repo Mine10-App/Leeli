@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enter Leaves - Admin</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+  h2 { text-align:center; margin-bottom: 20px; }
+
+  .container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+  .form-container, .report-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 450px; }
+
+  form .form-row { margin-bottom: 12px; display: flex; flex-direction: column; }
+  form label { font-weight: bold; margin-bottom: 5px; }
+  form input, form select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; width: 100%; }
+  form input[type="submit"] { background: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px; }
+  form input[type="submit"]:hover { background: #0056b3; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+  th, td { border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 14px; }
+  th { background: #007bff; color: white; }
+  tr:hover { background: #f1faff; }
+
+  .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h2>Leave Entry - Admin</h2>
+
+<div class="container">
+
+  <!-- Form to Add Leave -->
+  <div class="form-container">
+    <form id="leaveForm">
+      <div class="form-row">
+        <label for="leaveDate">Date:</label>
+        <input type="date" id="leaveDate" required>
+      </div>
+      <div class="form-row">
+        <label for="staffSelect">Staff:</label>
+        <select id="staffSelect" required>
+          <option value="">--Select Staff--</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="leaveType">Leave Type:</label>
+        <select id="leaveType" required>
+          <option value="">--Choose--</option>
+          <option value="Sick Leave">Sick Leave</option>
+          <option value="FRL">FRL</option>
+          <option value="Absent">Absent</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="reasonSelect">Reason:</label>
+        <select id="reasonSelect" required>
+          <option value="">--Choose--</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="dutyTime">Duty Time:</label>
+        <input type="time" id="dutyTime" required>
+      </div>
+      <input type="submit" value="Add Leave">
+    </form>
+    <div id="message" style="color:red; margin-top:10px;"></div>
+  </div>
+
+  <!-- Today's Entries -->
+  <div class="report-container">
+    <h3>Today's Leave Entries</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Staff</th>
+          <th>RC No</th>
+          <th>Leave</th>
+          <th>Reason</th>
+          <th>Duty</th>
+          <th>Submitted</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="todayList"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="sca.js"></script>
+<script src="aqj.js"></script>
+
+<script>
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const staffSelect = document.getElementById("staffSelect");
+const leaveType = document.getElementById("leaveType");
+const reasonSelect = document.getElementById("reasonSelect");
+const leaveForm = document.getElementById("leaveForm");
+const todayList = document.getElementById("todayList");
+const messageDiv = document.getElementById("message");
+const leaveDate = document.getElementById("leaveDate");
+const dutyTime = document.getElementById("dutyTime");
+
+// Populate staff dropdown from users array (aqj.js)
+users.forEach(u=>{
+  const opt = document.createElement("option");
+  opt.value = u.rcNo; // store RC No as value
+  opt.textContent = u.name;
+  staffSelect.appendChild(opt);
+});
+
+// Reason options
+const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
+const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
+
+// Populate Reason dynamically
+leaveType.addEventListener("change", ()=>{
+  reasonSelect.innerHTML = '<option value="">--Choose--</option>';
+  let reasons = [];
+  if(leaveType.value === "Sick Leave") reasons = sickReasons;
+  else if(leaveType.value === "FRL") reasons = frlReasons;
+  reasons.forEach(r=>{
+    const opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = r;
+    reasonSelect.appendChild(opt);
+  });
+});
+
+// Prevent back date selection
+leaveDate.min = new Date().toISOString().split("T")[0];
+
+// Submit form
+leaveForm.addEventListener("submit", async e=>{
+  e.preventDefault();
+  messageDiv.innerText = "";
+
+  const dateVal = leaveDate.value;
+  const staffName = staffSelect.selectedOptions[0].text;
+  const rcNo = staffSelect.value;
+  const leaveVal = leaveType.value;
+  const reasonVal = reasonSelect.value;
+  const dutyVal = dutyTime.value;
+  const submitTime = new Date().toLocaleTimeString();
+
+  if(!dateVal || !staffName || !rcNo || !leaveVal || !reasonVal || !dutyVal) return;
+
+  try {
+    await db.collection("leave_entries").add({
+      date: dateVal,
+      staff: staffName,
+      rcNo: rcNo,
+      leave: leaveVal,
+      reason: reasonVal,
+      duty: dutyVal,
+      submitTime: submitTime,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      status: "pending"
+    });
+    leaveForm.reset();
+    leaveDate.value = new Date().toISOString().split("T")[0]; // set today
+    messageDiv.style.color = "green";
+    messageDiv.innerText = "Leave added successfully!";
+    loadTodayEntries();
+  } catch(err){
+    console.error("Error adding leave:", err);
+    messageDiv.style.color = "red";
+    messageDiv.innerText = "Error adding leave!";
+  }
+});
+
+// Load today's leave entries
+function loadTodayEntries(){
+  const today = new Date().toISOString().split("T")[0];
+  db.collection("leave_entries").where("date","==",today).orderBy("timestamp","desc")
+    .get()
+    .then(snapshot=>{
+      todayList.innerHTML = "";
+      if(snapshot.empty){
+        todayList.innerHTML = '<tr><td colspan="8">No leaves for today</td></tr>';
+        return;
+      }
+      snapshot.forEach(docSnap=>{
+        const d = docSnap.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.date}</td>
+          <td>${d.staff}</td>
+          <td>${d.rcNo}</td>
+          <td>${d.leave}</td>
+          <td>${d.reason}</td>
+          <td>${d.duty}</td>
+          <td>${d.submitTime}</td>
+          <td><button class="delete-btn" onclick="deleteLeave('${docSnap.id}')">Delete</button></td>
+        `;
+        todayList.appendChild(row);
+      });
+    });
+}
+
+// Delete leave
+async function deleteLeave(id){
+  if(confirm("Delete this leave?")){
+    try {
+      await db.collection("leave_entries").doc(id).delete();
+      loadTodayEntries();
+    } catch(err){
+      console.error("Delete failed:", err);
+    }
+  }
+}
+
+// Initialize
+leaveDate.value = new Date().toISOString().split("T")[0]; // default today
+loadTodayEntries();
+</script>
+</body>
+</html>
