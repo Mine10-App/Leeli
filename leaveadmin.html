@@ -214,3 +214,23 @@ function loadEntries() {
             <div>${d.staff}</div>
             <div>${d.rcNo}</div>
             <div>${d.leave}</div>
+            <div>${d.reason}</div>
+            <div>${d.duty}</div>
+            <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
+          `;
+          todayList.appendChild(row);
+
+          row.querySelector(".delete-btn").onclick = async () => {
+            if (confirm("Delete this entry?")) {
+              await db.collection("leave_entries").doc(docSnap.id).delete();
+            }
+          };
+        }
+      });
+    });
+}
+
+loadEntries();
+</script>
+</body>
+</html>
