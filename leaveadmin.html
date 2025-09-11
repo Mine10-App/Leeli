@@ -6,7 +6,8 @@
 <style>
   body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
   .container { display: flex; gap: 30px; width: 95%; max-width: 1200px; }
-  .form-container, .entry-list { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .form-container { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .entry-list { flex: 2; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
   form .form-row { display: flex; align-items: center; margin-bottom: 12px; }
   form label { width: 120px; font-weight: bold; margin-right: 10px; }
   form input, form select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
@@ -16,7 +17,6 @@
   .entry-header, .entry-row { display: flex; gap: 10px; padding: 6px 0; align-items: center; }
   .entry-header div { font-weight: bold; flex: 1; text-align: center; border-bottom: 2px solid #007bff; }
   .entry-row div { flex: 1; text-align: center; background: #f1f1f1; padding: 5px; border-radius: 5px; font-size: 14px; }
-  .entry-row.late { background: #ffd6d6 !important; } /* Late sick leave highlight */
   .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
   #message { color: red; margin-top: 10px; text-align: center; }
 </style>
@@ -149,18 +149,6 @@ form.addEventListener("submit", async e => {
 
   const now = new Date();
 
-  // Sick leave late report check
-  if(leaveVal === "Sick Leave"){
-    const [dutyH, dutyM] = dutyVal.split(":").map(Number);
-    const dutyDateTime = new Date(dateVal);
-    dutyDateTime.setHours(dutyH, dutyM, 0, 0);
-    const diffHrs = (dutyDateTime - now) / (1000*60*60);
-    if(diffHrs < 2){
-      messageDiv.innerText = "⚠️ Late Report: Less than 2 hours to duty time!";
-      return;
-    }
-  }
-
   try {
     await db.collection("leave_entries").add({
       date: dateVal,
@@ -191,17 +179,6 @@ function loadEntries(){
         const d = docSnap.data();
         const row = document.createElement("div");
         row.className = "entry-row";
-
-        // Highlight late sick leave (optional)
-        if(d.leave === "Sick Leave"){
-          const [dutyH, dutyM] = d.duty.split(":").map(Number);
-          const dutyDateTime = new Date(d.date);
-          dutyDateTime.setHours(dutyH, dutyM, 0, 0);
-          if((dutyDateTime - new Date()) < 2*60*60*1000){
-            row.classList.add("late");
-          }
-        }
-
         row.innerHTML = `
           <div>${d.date}</div>
           <div>${d.staff}</div>
