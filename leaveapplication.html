@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leave Form - Today's Entries</title>
+<title>Leave Form - Monthly Entries</title>
 <style>
   body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
   .container { display: flex; gap: 30px; width: 95%; max-width: 1200px; }
@@ -48,7 +48,7 @@
           <option value="">--Choose--</option>
           <option value="Sick Leave">Sick Leave</option>
           <option value="FRL">FRL</option>
-          
+          <option value="Absent">Absent</option>
         </select>
       </div>
       <div class="form-row">
@@ -66,9 +66,9 @@
     <div id="message" style="color:red; margin-top:10px;"></div>
   </div>
 
-  <!-- Today's Entries -->
+  <!-- Entries -->
   <div class="entry-list">
-    <h2>Current payrol Entries</h2>
+    <h2>Leave Entries (20th → 20th)</h2>
     <div class="user-info" id="userInfo"></div>
     <div class="entry-header">
       <div>Date</div>
@@ -116,7 +116,6 @@ if(loggedInUser){
   recipientInput.value = "";
   rcInput.value = "";
   userInfo.innerText = "⚠️ No logged-in user found!";
-  console.error("Logged-in user not found in users array");
 }
 
 // Reason options
@@ -187,13 +186,37 @@ form.addEventListener("submit", async e=>{
   }
 });
 
-// Load today's entries (only for current user)
-function loadTodayEntries(){
-  const today = new Date().toISOString().split("T")[0];
+// 🔹 Compute date range from 20th → 20th
+function getDateRange() {
+  const now = new Date();
+  let start, end;
+
+  if (now.getDate() >= 20) {
+    // Current month 20 → next month 20
+    start = new Date(now.getFullYear(), now.getMonth(), 20);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 20);
+  } else {
+    // Previous month 20 → current month 20
+    start = new Date(now.getFullYear(), now.getMonth() - 1, 20);
+    end = new Date(now.getFullYear(), now.getMonth(), 20);
+  }
+
+  return {
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0]
+  };
+}
+
+// Load entries for current range
+function loadRangeEntries(){
   if(!loggedInUser) return;
+  const { start, end } = getDateRange();
+
   db.collection("leave_entries")
-    .where("date","==",today)
-    .where("staff","==",loggedInUser.name)  // ✅ filter by current user
+    .where("staff","==",loggedInUser.name)
+    .where("date",">=",start)
+    .where("date","<",end)
+    .orderBy("date","asc")
     .onSnapshot(snapshot=>{
       todayList.innerHTML = "";
       snapshot.forEach(docSnap=>{
@@ -222,10 +245,8 @@ function loadTodayEntries(){
 }
 
 // Initialize
-loadTodayEntries();
+loadRangeEntries();
 </script>
 
 </body>
 </html>
-
-
