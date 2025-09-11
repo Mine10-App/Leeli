@@ -66,8 +66,9 @@
     <h2>Welcome, <span id="userName"></span></h2>
     <div class="top-buttons">
       <button class="btn" onclick="goToDutyChange()">Request Duty Change</button>
+      <button class="btn" onclick="goToLeave()">Leave</button>
       <button class="btn" onclick="logout()">Logout</button>
-      <a href="change-password.html">Change Password</a>
+      
     </div>
   </div>
 
@@ -95,6 +96,7 @@ if(!currentUser){
 }
 
 function goToDutyChange(){ window.location.href = "dutychange.html"; }
+function goToLeave(){ window.location.href = "leaveapplication.html"; }
 function logout(){ localStorage.removeItem("currentUser"); localStorage.removeItem("currentRCNo"); window.location.href = "index.html"; }
 
 function loadRequests() {
@@ -177,6 +179,7 @@ loadRequests();
 </script>
 </body>
 </html>
+
 
 
 
