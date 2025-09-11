@@ -68,17 +68,18 @@
 
   <!-- Entries -->
   <div class="entry-list">
-    <h2>Leave Entries</h2>
-    <div class="entry-header">
-      <div>Date</div>
-      <div>Staff</div>
-      <div>Leave</div>
-      <div>Duty</div>
-      <div>Submitted</div>
-      <div>Action</div>
-    </div>
-    <div id="todayList"></div>
+  <h2>Leave Entries</h2>
+  <div class="entry-header">
+    <div style="flex:1;">Date</div>
+    <div style="flex:2;">Staff</div>
+    <div style="flex:1;">RCNo</div>
+    <div style="flex:1;">Leave</div>
+    <div style="flex:2;">Reason</div>
+    <div style="flex:0.7;">Duty</div>
+    <div style="flex:0.7;">Action</div>
   </div>
+  <div id="todayList"></div>
+</div>
 
 </div>
 
@@ -180,13 +181,15 @@ function loadEntries(){
         const row = document.createElement("div");
         row.className = "entry-row";
         row.innerHTML = `
-          <div>${d.date}</div>
-          <div>${d.staff}</div>
-          <div>${d.leave}</div>
-          <div>${d.duty}</div>
-          <div>${d.submitTime || "-"}</div>
-          <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
-        `;
+  <div>${d.date}</div>
+  <div style="text-align:left;">${d.staff}</div>
+  <div>${d.rcNo}</div>
+  <div>${d.leave}</div>
+  <div style="text-align:left;">${d.reason}</div>
+  <div>${d.duty}</div>
+  <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
+`;
+        
         todayList.appendChild(row);
       });
 
