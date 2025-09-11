@@ -1,0 +1,129 @@
+/* style.css */
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f7fa;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.column {
+  flex: 1 1 50%;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.left {
+  background: #ffffff;
+  border-right: 2px solid #e0e0e0;
+}
+
+.right {
+  background: #f9fbfd;
+}
+
+.form-container {
+  max-width: 500px;
+  margin: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.form-row {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus {
+  border-color: #0066cc;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 102, 204, 0.4);
+}
+
+button {
+  background: #0066cc;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #004c99;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .column {
+    flex: 1 1 100%;
+    border-right: none;
+    border-bottom: 2px solid #e0e0e0;
+  }
+}
+
+/* Ribbon-style buttons */
+.ribbon-button {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #fff;
+  background: #0066cc;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  text-align: center;
+  text-decoration: none;
+  margin: 0 5px 5px 0;
+}
+
+.ribbon-button:hover {
+  background: #004c99;
+}
+
+/* Container for top buttons */
+.top-buttons {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  gap: 5px;
+}
+
+.ribbon-button {
+  width: auto; /* prevents full-width for ribbon buttons */
+}
+
+.request-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fefefe;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
