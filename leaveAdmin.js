@@ -9,12 +9,24 @@ const dutyInput = document.getElementById("DutyTime");
 const form = document.getElementById("leaveForm");
 const reportList = document.getElementById("reportList");
 
-// Populate staff dropdown
-users.forEach(u => {
-  const opt = document.createElement("option");
-  opt.value = u.name;
-  opt.textContent = u.name;
-  staffSelect.appendChild(opt);
+// Staff dropdown
+const staffSelect = document.getElementById("StaffName");
+const rcInput = document.getElementById("RcNo");
+
+// Populate dropdown from aqj.js users array
+if (typeof users !== "undefined") {
+    users.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u.name;
+        opt.textContent = u.name;
+        staffSelect.appendChild(opt);
+    });
+}
+
+// Auto-fill RC No when staff is selected
+staffSelect.addEventListener("change", () => {
+    const selectedStaff = users.find(u => u.name === staffSelect.value);
+    rcInput.value = selectedStaff ? selectedStaff.rcNo : "";
 });
 
 // Reason options
