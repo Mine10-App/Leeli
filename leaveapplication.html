@@ -2,24 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leave Form - Monthly Entries</title>
+<title>Leave Form - Entries</title>
 <style>
   body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
   .container { display: flex; gap: 30px; width: 95%; max-width: 1200px; }
-
   .form-container, .entry-list { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
   form .form-row { display: flex; align-items: center; margin-bottom: 12px; }
   form label { width: 120px; font-weight: bold; margin-right: 10px; }
   form input, form select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
   form input[type="submit"] { background: #007bff; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; }
   form input[type="submit"]:hover { background: #0056b3; }
-
   h2 { text-align: center; margin-bottom: 15px; }
   .entry-header, .entry-row { display: flex; gap: 10px; padding: 6px 0; align-items: center; }
   .entry-header div { font-weight: bold; flex: 1; text-align: center; border-bottom: 2px solid #007bff; }
   .entry-row div { flex: 1; text-align: center; background: #f1f1f1; padding: 5px; border-radius: 5px; font-size: 14px; }
   .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
-  .user-info { text-align: center; margin-bottom: 10px; font-weight: bold; color: #333; }
+  #message { color: red; margin-top: 10px; text-align: center; }
 </style>
 </head>
 <body>
@@ -28,14 +26,14 @@
 
   <!-- Form -->
   <div class="form-container">
-    <h2>FRL & Sick Leave Report</h2>
+    <h2>Leave Form</h2>
     <form id="leaveForm">
       <div class="form-row">
         <label for="myDate">Date:</label>
         <input type="date" id="myDate" required>
       </div>
       <div class="form-row">
-        <label for="recipient">Name:</label>
+        <label for="recipient">Recipient Staff:</label>
         <input type="text" id="recipient" readonly>
       </div>
       <div class="form-row">
@@ -63,18 +61,18 @@
       </div>
       <input type="submit" value="Add Leave Entry">
     </form>
-    <div id="message" style="color:red; margin-top:10px;"></div>
+    <div id="message"></div>
   </div>
 
   <!-- Entries -->
   <div class="entry-list">
-    <h2>Leave Entries (20th → 20th)</h2>
-    <div class="user-info" id="userInfo"></div>
+    <h2>Leave Entries</h2>
     <div class="entry-header">
       <div>Date</div>
       <div>Staff</div>
       <div>Leave</div>
       <div>Duty</div>
+      <div>Submitted</div>
       <div>Action</div>
     </div>
     <div id="todayList"></div>
@@ -85,8 +83,8 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="sca.js"></script> 
-<script src="aqj.js"></script> 
+<script src="sca.js"></script>
+<script src="aqj.js"></script>
 
 <script>
 firebase.initializeApp(firebaseConfig);
@@ -105,24 +103,17 @@ const dutyInput = document.getElementById("DutyTime");
 const form = document.getElementById("leaveForm");
 const messageDiv = document.getElementById("message");
 const todayList = document.getElementById("todayList");
-const userInfo = document.getElementById("userInfo");
 
-// Auto-fill recipient and RCNo
+// Auto-fill recipient & RCNo
 if(loggedInUser){
   recipientInput.value = loggedInUser.name;
   rcInput.value = loggedInUser.rcNo;
-  userInfo.innerText = "Showing entries for: " + loggedInUser.name;
-} else {
-  recipientInput.value = "";
-  rcInput.value = "";
-  userInfo.innerText = "⚠️ No logged-in user found!";
 }
 
 // Reason options
 const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
 const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
 
-// Populate Reason dynamically
 leaveSelect.addEventListener("change", ()=>{
   reasonSelect.innerHTML = '<option value="">--Choose--</option>';
   let reasons = [];
@@ -136,7 +127,7 @@ leaveSelect.addEventListener("change", ()=>{
   });
 });
 
-// Prevent back date selection
+// No back date
 dateInput.min = new Date().toISOString().split("T")[0];
 
 // Submit form
@@ -151,23 +142,20 @@ form.addEventListener("submit", async e=>{
 
   if(!dateVal || !leaveVal || !reasonVal || !dutyVal) return;
 
-  // Check Sick Leave late report (time diff < 2 hours)
+  const now = new Date();
+
+  // Sick leave late report check
   if(leaveVal === "Sick Leave"){
-    const now = new Date();
     const [dutyH, dutyM] = dutyVal.split(":").map(Number);
     const dutyDateTime = new Date(dateVal);
     dutyDateTime.setHours(dutyH, dutyM, 0, 0);
-
-    const diffMs = dutyDateTime - now;
-    const diffHrs = diffMs / (1000 * 60 * 60);
-
+    const diffHrs = (dutyDateTime - now) / (1000*60*60);
     if(diffHrs < 2){
       messageDiv.innerText = "⚠️ Late Report: Less than 2 hours to duty time!";
       return;
     }
   }
 
-  // Save to Firestore
   try {
     await db.collection("leave_entries").add({
       date: dateVal,
@@ -176,6 +164,7 @@ form.addEventListener("submit", async e=>{
       leave: leaveVal,
       reason: reasonVal,
       duty: dutyVal,
+      submitTime: now.toLocaleString(),
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     form.reset();
@@ -186,37 +175,9 @@ form.addEventListener("submit", async e=>{
   }
 });
 
-// 🔹 Compute date range from 20th → 20th
-function getDateRange() {
-  const now = new Date();
-  let start, end;
-
-  if (now.getDate() >= 20) {
-    // Current month 20 → next month 20
-    start = new Date(now.getFullYear(), now.getMonth(), 20);
-    end = new Date(now.getFullYear(), now.getMonth() + 1, 20);
-  } else {
-    // Previous month 20 → current month 20
-    start = new Date(now.getFullYear(), now.getMonth() - 1, 20);
-    end = new Date(now.getFullYear(), now.getMonth(), 20);
-  }
-
-  return {
-    start: start.toISOString().split("T")[0],
-    end: end.toISOString().split("T")[0]
-  };
-}
-
-// Load entries for current range
-function loadRangeEntries(){
-  if(!loggedInUser) return;
-  const { start, end } = getDateRange();
-
-  db.collection("leave_entries")
-    .where("staff","==",loggedInUser.name)
-    .where("date",">=",start)
-    .where("date","<",end)
-    .orderBy("date","asc")
+// Load entries for current user
+function loadEntries(){
+  db.collection("leave_entries").where("staff","==",loggedInUser.name)
     .onSnapshot(snapshot=>{
       todayList.innerHTML = "";
       snapshot.forEach(docSnap=>{
@@ -228,6 +189,7 @@ function loadRangeEntries(){
           <div>${d.staff}</div>
           <div>${d.leave}</div>
           <div>${d.duty}</div>
+          <div>${d.submitTime || "-"}</div>
           <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
         `;
         todayList.appendChild(row);
@@ -235,19 +197,16 @@ function loadRangeEntries(){
 
       todayList.querySelectorAll(".delete-btn").forEach(btn=>{
         btn.onclick = async ()=>{
-          if(confirm("Are you sure you want to delete this entry?")){
+          if(confirm("Delete this entry?")){
             try { await db.collection("leave_entries").doc(btn.dataset.id).delete(); }
             catch(err){ console.error("Delete failed:", err); }
           }
         };
       });
-    }, err=>console.error("Snapshot error:", err));
+    });
 }
 
-// Initialize
-loadRangeEntries();
+loadEntries();
 </script>
-
 </body>
 </html>
-
