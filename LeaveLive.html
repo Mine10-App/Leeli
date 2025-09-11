@@ -5,7 +5,10 @@
 <title>Leave Report</title>
 <style>
   body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  h2 { text-align:center; }
+  .filters { text-align:center; margin-bottom: 20px; }
+  .filters input, .filters button { padding: 5px; margin: 0 5px; }
+  table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
   th { background: #007bff; color: white; }
   button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
@@ -16,7 +19,15 @@
 </head>
 <body>
 
-<h2 style="text-align:center;">All Leave Entries</h2>
+<h2>All Leave Entries</h2>
+
+<div class="filters">
+  <label>From: <input type="date" id="fromDate"></label>
+  <label>To: <input type="date" id="toDate"></label>
+  <button onclick="filterReports()">Filter</button>
+  <button onclick="loadReports()">Reset</button>
+</div>
+
 <table>
   <thead>
     <tr>
@@ -44,47 +55,74 @@ const db = firebase.firestore();
 
 const reportList = document.getElementById("reportList");
 
+function renderSnapshot(snapshot){
+  reportList.innerHTML = "";
+  snapshot.forEach(docSnap=>{
+    const d = docSnap.data();
+    const status = d.status || "pending";
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${d.date}</td>
+      <td>${d.staff}</td>
+      <td>${d.rcNo}</td>
+      <td>${d.leave}</td>
+      <td>${d.reason}</td>
+      <td>${d.duty}</td>
+      <td>${d.submitTime || "-"}</td>
+      <td>${status}</td>
+      <td>
+        <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
+        <button class="delete-btn">Delete</button>
+      </td>
+    `;
+    const applyBtn = row.querySelector(".apply-btn");
+    const deleteBtn = row.querySelector(".delete-btn");
+
+    applyBtn.onclick = async ()=>{
+      if(status !== "applied"){
+        await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
+      }
+    };
+
+    deleteBtn.onclick = async ()=>{
+      if(confirm("Delete this entry?")){
+        await db.collection("leave_entries").doc(docSnap.id).delete();
+      }
+    };
+
+    reportList.appendChild(row);
+  });
+}
+
+// Load all reports
 function loadReports(){
   db.collection("leave_entries").orderBy("timestamp","desc")
-    .onSnapshot(snapshot=>{
-      reportList.innerHTML = "";
-      snapshot.forEach(docSnap=>{
-        const d = docSnap.data();
-        const status = d.status || "pending";
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${d.date}</td>
-          <td>${d.staff}</td>
-          <td>${d.rcNo}</td>
-          <td>${d.leave}</td>
-          <td>${d.reason}</td>
-          <td>${d.duty}</td>
-          <td>${d.submitTime || "-"}</td>
-          <td>${status}</td>
-          <td>
-            <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
-            <button class="delete-btn">Delete</button>
-          </td>
-        `;
-        const applyBtn = row.querySelector(".apply-btn");
-        const deleteBtn = row.querySelector(".delete-btn");
-
-        applyBtn.onclick = async ()=>{
-          if(status !== "applied"){
-            await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
-          }
-        };
-
-        deleteBtn.onclick = async ()=>{
-          if(confirm("Delete this entry?")){
-            await db.collection("leave_entries").doc(docSnap.id).delete();
-          }
-        };
-
-        reportList.appendChild(row);
-      });
-    });
+    .get()
+    .then(renderSnapshot);
 }
+
+// Filter reports by date
+function filterReports(){
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+
+  if(!fromDate || !toDate){
+    alert("Please select both From and To dates.");
+    return;
+  }
+
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+  to.setHours(23,59,59,999); // include full day
+
+  db.collection("leave_entries")
+    .where("timestamp", ">=", from)
+    .where("timestamp", "<=", to)
+    .orderBy("timestamp","desc")
+    .get()
+    .then(renderSnapshot);
+}
+
 loadReports();
 </script>
 </body>
