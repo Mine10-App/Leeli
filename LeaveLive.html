@@ -168,36 +168,37 @@ form.addEventListener("submit", async e => {
   }
 });
 
-function loadEntries(){
-  const startOfDay = firebase.firestore.Timestamp.fromDate(new Date(new Date().setHours(0,0,0,0)));
-  const endOfDay = firebase.firestore.Timestamp.fromDate(new Date(new Date().setHours(23,59,59,999)));
+function loadEntries() {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
 
   db.collection("leave_entries")
-    .where("timestamp", ">=", startOfDay)
-    .where("timestamp", "<=", endOfDay)
     .orderBy("timestamp", "asc")
     .onSnapshot(snapshot => {
       todayList.innerHTML = "";
       snapshot.forEach(docSnap => {
         const d = docSnap.data();
-        const row = document.createElement("div");
-        row.className = "entry-row";
-        row.innerHTML = `
-          <div>${d.date}</div>
-          <div style="text-align:left;">${d.staff}</div>
-          <div>${d.rcNo}</div>
-          <div>${d.leave}</div>
-          <div style="text-align:left;">${d.reason}</div>
-          <div>${d.duty}</div>
-          <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
-        `;
-        todayList.appendChild(row);
+        // Only show entries for today
+        if (d.date === todayStr) {
+          const row = document.createElement("div");
+          row.className = "entry-row";
+          row.innerHTML = `
+            <div>${d.date}</div>
+            <div style="text-align:left;">${d.staff}</div>
+            <div>${d.rcNo}</div>
+            <div>${d.leave}</div>
+            <div style="text-align:left;">${d.reason}</div>
+            <div>${d.duty}</div>
+            <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
+          `;
+          todayList.appendChild(row);
 
-        row.querySelector(".delete-btn").onclick = async () => {
-          if(confirm("Delete this entry?")){
-            await db.collection("leave_entries").doc(docSnap.id).delete();
-          }
-        };
+          row.querySelector(".delete-btn").onclick = async () => {
+            if (confirm("Delete this entry?")) {
+              await db.collection("leave_entries").doc(docSnap.id).delete();
+            }
+          };
+        }
       });
     });
 }
