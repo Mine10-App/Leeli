@@ -2,31 +2,28 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Elements
-const staffSelect = document.getElementById("staffSelect");
+const staffSelect = document.getElementById("StaffName");
+const rcInput = document.getElementById("RcNo");
 const leaveSelect = document.getElementById("LType");
 const reasonSelect = document.getElementById("Reason");
 const dutyInput = document.getElementById("DutyTime");
 const form = document.getElementById("leaveForm");
 const reportList = document.getElementById("reportList");
 
-// Staff dropdown
-const staffSelect = document.getElementById("StaffName");
-const rcInput = document.getElementById("RcNo");
-
-// Populate dropdown from aqj.js users array
-if (typeof users !== "undefined") {
-    users.forEach(u => {
-        const opt = document.createElement("option");
-        opt.value = u.name;
-        opt.textContent = u.name;
-        staffSelect.appendChild(opt);
-    });
+// Populate staff dropdown from aqj.js users array
+if(typeof users !== "undefined"){
+  users.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.name;
+    opt.textContent = u.name;
+    staffSelect.appendChild(opt);
+  });
 }
 
-// Auto-fill RC No when staff is selected
-staffSelect.addEventListener("change", () => {
-    const selectedStaff = users.find(u => u.name === staffSelect.value);
-    rcInput.value = selectedStaff ? selectedStaff.rcNo : "";
+// Auto-fill RC No when staff selected
+staffSelect.addEventListener("change", ()=>{
+  const selectedStaff = users.find(u => u.name === staffSelect.value);
+  rcInput.value = selectedStaff ? selectedStaff.rcNo : "";
 });
 
 // Reason options
@@ -34,7 +31,7 @@ const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","
 const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
 
 leaveSelect.addEventListener("change", ()=>{
-  reasonSelect.innerHTML = '<option value="">--Choose--</option>';
+  reasonSelect.innerHTML = '<option value="">--Select Reason--</option>';
   let reasons = [];
   if(leaveSelect.value === "Sick Leave") reasons = sickReasons;
   else if(leaveSelect.value === "FRL") reasons = frlReasons;
@@ -54,13 +51,12 @@ form.addEventListener("submit", async e=>{
   const leaveVal = leaveSelect.value;
   const reasonVal = reasonSelect.value;
   const dutyVal = dutyInput.value;
-
   if(!staffName || !leaveVal || !reasonVal || !dutyVal) return;
 
   const now = new Date();
-  const submitTime = now.toLocaleTimeString();
+  const submitTime = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-  try {
+  try{
     await db.collection("leave_entries").add({
       date: now.toISOString().split("T")[0],
       staff: staffName,
@@ -73,7 +69,7 @@ form.addEventListener("submit", async e=>{
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     form.reset();
-  } catch(err){
+  }catch(err){
     console.error("Error adding document:", err);
   }
 });
