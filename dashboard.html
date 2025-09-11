@@ -95,7 +95,7 @@ if(!currentUser){
 }
 
 function goToDutyChange(){ window.location.href = "dutychange.html"; }
-function logout(){ localStorage.removeItem("currentUser"); localStorage.removeItem("currentRCNo"); window.location.href = "login.html"; }
+function logout(){ localStorage.removeItem("currentUser"); localStorage.removeItem("currentRCNo"); window.location.href = "index.html"; }
 
 function loadRequests() {
   const incomingContainer = document.getElementById("incomingRequests");
@@ -177,5 +177,6 @@ loadRequests();
 </script>
 </body>
 </html>
+
 
 
