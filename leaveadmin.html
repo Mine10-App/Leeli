@@ -97,7 +97,7 @@ const db = firebase.firestore();
 const currentUser = localStorage.getItem("currentUser") || "";
 const loggedInUser = users.find(u => u.name === currentUser);
 
-// Check if admin (simple rule: username = admin, you can change this)
+// Simple admin check (change if needed)
 const isAdmin = (currentUser === "admin");
 
 // Form elements
@@ -123,16 +123,19 @@ if (loggedInUser && !isAdmin) {
 if (isAdmin) {
   recipientInput.style.display = "none";
   recipientSelect.style.display = "block";
+  // Populate from aqj.js users array
   users.forEach(u => {
     const opt = document.createElement("option");
     opt.value = u.name;
     opt.textContent = u.name;
     recipientSelect.appendChild(opt);
   });
+  // Auto-fill RCNo when selecting
   recipientSelect.addEventListener("change", () => {
     const selUser = users.find(u => u.name === recipientSelect.value);
     rcInput.value = selUser ? selUser.rcNo : "";
   });
+  // Trigger default
   recipientSelect.dispatchEvent(new Event("change"));
 }
 
