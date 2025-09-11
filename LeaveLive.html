@@ -2,161 +2,90 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leave Entries</title>
+<title>Leave Report</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f6fa;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-  }
-  .container {
-    width: 95%;
-    max-width: 950px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-  th, td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
-  }
-  th {
-    background: #2c3e50;
-    color: white;
-  }
-  button {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-  .apply-btn {
-    background: #27ae60;
-    color: white;
-  }
-  .apply-btn.applied {
-    background: #95a5a6;
-    cursor: not-allowed;
-  }
-  .delete-btn {
-    background: #e74c3c;
-    color: white;
-  }
+  body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
+  th { background: #007bff; color: white; }
+  button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; }
+  .apply-btn { background: #28a745; color: white; }
+  .apply-btn.applied { background: gray; cursor: default; }
+  .delete-btn { background: red; color: white; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h2>Leave Entries</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Staff Name</th>
-        <th>RC No</th>
-        <th>Leave Type</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="leaveTableBody"></tbody>
-  </table>
-</div>
+
+<h2 style="text-align:center;">All Leave Entries</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Staff</th>
+      <th>RC No</th>
+      <th>Leave</th>
+      <th>Reason</th>
+      <th>Duty</th>
+      <th>Submitted</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="reportList"></tbody>
+</table>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="sca.js"></script> 
-
+<script src="sca.js"></script>
 <script>
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  // 🔹 Calculate range 20th → 20th
-  function get20thRange() {
-    const now = new Date();
-    let start, end;
+const reportList = document.getElementById("reportList");
 
-    if (now.getDate() >= 20) {
-      start = new Date(now.getFullYear(), now.getMonth(), 20, 0, 0, 0);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 20, 23, 59, 59);
-    } else {
-      start = new Date(now.getFullYear(), now.getMonth() - 1, 20, 0, 0, 0);
-      end = new Date(now.getFullYear(), now.getMonth(), 20, 23, 59, 59);
-    }
-    return { start, end };
-  }
+function loadReports(){
+  db.collection("leave_entries").orderBy("timestamp","desc")
+    .onSnapshot(snapshot=>{
+      reportList.innerHTML = "";
+      snapshot.forEach(docSnap=>{
+        const d = docSnap.data();
+        const status = d.status || "pending";
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.date}</td>
+          <td>${d.staff}</td>
+          <td>${d.rcNo}</td>
+          <td>${d.leave}</td>
+          <td>${d.reason}</td>
+          <td>${d.duty}</td>
+          <td>${d.submitTime || "-"}</td>
+          <td>${status}</td>
+          <td>
+            <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
+            <button class="delete-btn">Delete</button>
+          </td>
+        `;
+        const applyBtn = row.querySelector(".apply-btn");
+        const deleteBtn = row.querySelector(".delete-btn");
 
-  async function loadLeaveEntries() {
-    const { start, end } = get20thRange();
-    const startTS = firebase.firestore.Timestamp.fromDate(start);
-    const endTS = firebase.firestore.Timestamp.fromDate(end);
+        applyBtn.onclick = async ()=>{
+          if(status !== "applied"){
+            await db.collection("leave_entries").doc(docSnap.id).update({ status:"applied" });
+          }
+        };
 
-    const snapshot = await db.collection("leaveRequests")
-      .where("fromDate", ">=", startTS)
-      .where("fromDate", "<=", endTS)
-      .orderBy("fromDate", "asc")
-      .get();
+        deleteBtn.onclick = async ()=>{
+          if(confirm("Delete this entry?")){
+            await db.collection("leave_entries").doc(docSnap.id).delete();
+          }
+        };
 
-    const tbody = document.getElementById("leaveTableBody");
-    tbody.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const tr = document.createElement("tr");
-
-      const fromDate = data.fromDate?.toDate().toLocaleDateString() || "-";
-      const toDate = data.toDate?.toDate().toLocaleDateString() || "-";
-      const status = data.status || "pending";
-
-      tr.innerHTML = `
-        <td>${data.staffName}</td>
-        <td>${data.rcNo}</td>
-        <td>${data.leaveType}</td>
-        <td>${fromDate}</td>
-        <td>${toDate}</td>
-        <td>${status}</td>
-        <td>
-          <button class="apply-btn ${status === 'applied' ? 'applied' : ''}" ${status === 'applied' ? 'disabled' : ''}>Apply</button>
-          <button class="delete-btn">Delete</button>
-        </td>
-      `;
-
-      // ✅ Apply
-      tr.querySelector(".apply-btn").addEventListener("click", async () => {
-        await db.collection("leaveRequests").doc(doc.id).update({ status: "applied" });
-        loadLeaveEntries();
+        reportList.appendChild(row);
       });
-
-      // ❌ Delete
-      tr.querySelector(".delete-btn").addEventListener("click", async () => {
-        if (confirm("Delete this leave entry?")) {
-          await db.collection("leaveRequests").doc(doc.id).delete();
-          loadLeaveEntries();
-        }
-      });
-
-      tbody.appendChild(tr);
     });
-  }
-
-  loadLeaveEntries();
+}
+loadReports();
 </script>
 </body>
 </html>
