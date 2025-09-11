@@ -17,22 +17,20 @@
 
   h2 { text-align: center; margin-bottom: 15px; }
 
-  .entry-header, .entry-row { display: flex; gap: 10px; padding: 6px 0; align-items: center; font-size: 13px; } /* smaller font */
+  .entry-header, .entry-row { display: flex; gap: 10px; padding: 6px 0; align-items: center; font-size: 13px; }
   .entry-header div {
     font-weight: bold;
     text-align: center;
     border-bottom: 2px solid #007bff;
     padding: 5px;
     font-size: 13px;
-    border-radius: 5px;
-    background: none;
   }
   .entry-row div {
     text-align: center;
     background: #f1f1f1;
     padding: 5px;
     border-radius: 5px;
-    font-size: 13px; /* smaller font */
+    font-size: 13px;
   }
 
   /* Column widths */
@@ -130,7 +128,7 @@ const form = document.getElementById("leaveForm");
 const messageDiv = document.getElementById("message");
 const todayList = document.getElementById("todayList");
 
-// Populate Name dropdown from aqj.js
+// Populate Name dropdown
 users.forEach(u => {
   const opt = document.createElement("option");
   opt.value = u.name;
@@ -138,7 +136,7 @@ users.forEach(u => {
   recipientSelect.appendChild(opt);
 });
 
-// Auto-fill RCNo when name selected
+// Auto-fill RCNo
 recipientSelect.addEventListener("change", () => {
   const selected = users.find(u => u.name === recipientSelect.value);
   rcInput.value = selected ? selected.rcNo : "";
@@ -195,6 +193,7 @@ form.addEventListener("submit", async e => {
   }
 });
 
+// Load today's entries
 function loadEntries() {
   const today = new Date();
   const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -208,10 +207,12 @@ function loadEntries() {
       todayList.innerHTML = "";
       snapshot.forEach(docSnap => {
         const d = docSnap.data();
+        const dateObj = new Date(d.date);
+        const shortDate = `${dateObj.getDate()}/${dateObj.getMonth()+1}/${dateObj.getFullYear()}`;
         const row = document.createElement("div");
         row.className = "entry-row";
         row.innerHTML = `
-          <div>${d.date}</div>
+          <div>${shortDate}</div>
           <div>${d.staff}</div>
           <div>${d.rcNo}</div>
           <div>${d.leave}</div>
