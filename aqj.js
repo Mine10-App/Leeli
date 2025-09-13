@@ -1,4 +1,4 @@
-const = [
+const data = [
   { username: "sobah", password: "12345", name: "Mohamed Sobah", rcNo: "T-0160" },
   { username: "shiara", password: "12345", name: "Mariyam Shiara", rcNo: "A-7503" },
   { username: "musrifa", password: "12345", name: "Musrifa Riyaaz", rcNo: "T-0112" },
