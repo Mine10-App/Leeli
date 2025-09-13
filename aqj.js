@@ -1,4 +1,4 @@
- [
+const = [
   { username: "sobah", password: "12345", name: "Mohamed Sobah", rcNo: "T-0160" },
   { username: "shiara", password: "12345", name: "Mariyam Shiara", rcNo: "A-7503" },
   { username: "musrifa", password: "12345", name: "Musrifa Riyaaz", rcNo: "T-0112" },
@@ -33,5 +33,5 @@
   { username: "irufan", password: "12345", name: "Abdulla Irufan", rcNo: "979" },
   { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623" }
 
-]
+];
 
