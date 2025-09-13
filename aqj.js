@@ -33,4 +33,5 @@
   { username: "irufan", password: "12345", name: "Abdulla Irufan", rcNo: "979" },
   { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623" }
 
-];
+]
+
