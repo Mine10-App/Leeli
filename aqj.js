@@ -31,7 +31,6 @@ const data = [
   { username: "nasma", password: "12345", name: "Nasma Ahmed", rcNo: "A-9480" },
   { username: "saffana", password: "12345", name: "Saffana Abdulla", rcNo: "A-9481" },
   { username: "irufan", password: "12345", name: "Abdulla Irufan", rcNo: "979" },
-  { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623" }
-
+  { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623" }
 ];
 
