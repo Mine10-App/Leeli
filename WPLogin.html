@@ -35,7 +35,7 @@ function login(){
   if(user){
     localStorage.setItem("currentWP", user.WP);
     localStorage.setItem("currentUserName", user.name);
-    window.location.href = "dutychange_report.html"; // Your duty change page
+    window.location.href = "WPDashboard.html"; // Your duty change page
   } else {
     document.getElementById("errorMsg").innerText = "Invalid WP or password!";
   }
