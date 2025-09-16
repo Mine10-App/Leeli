@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Leave Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
   h2 { text-align: center; }
-  .filters { text-align: center; margin-bottom: 20px; }
-  .filters input, .filters button { padding: 5px; margin: 0 5px; }
   table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 14px; }
   th { background: #007bff; color: white; }
@@ -20,14 +19,6 @@
 <body>
 
 <h2>Leave Entries</h2>
-
-<div class="filters">
-  <label>From: <input type="date" id="fromDate"></label>
-  <label>To: <input type="date" id="toDate"></label>
-  <label>Staff: <input type="text" id="filterStaff" placeholder="Name"></label>
-  <button onclick="filterReports()">Filter</button>
-  <button onclick="loadReports()">Reset</button>
-</div>
 
 <table>
   <thead>
@@ -66,16 +57,13 @@ if(!currentUser || !currentWP){
 }
 
 // Render entries
-function renderEntries(snapshot, staffFilter = ""){
+function renderEntries(snapshot) {
   reportList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const d = docSnap.data();
 
     // Only show entries for the logged-in WP
     if(d.WP !== currentWP) return;
-
-    // Filter by staff name if provided
-    if(staffFilter && !d.staff.toLowerCase().includes(staffFilter.toLowerCase())) return;
 
     const status = d.status || "pending";
     const row = document.createElement("tr");
@@ -122,37 +110,6 @@ function loadReports(){
     .catch(err => {
       console.error("Error loading reports:", err);
       reportList.innerHTML = "<tr><td colspan='9'>Error loading reports.</td></tr>";
-    });
-}
-
-// Filter by date and name
-function filterReports(){
-  const fromDate = document.getElementById("fromDate").value;
-  const toDate = document.getElementById("toDate").value;
-  const staffFilter = document.getElementById("filterStaff").value;
-
-  db.collection("leave_entries")
-    .orderBy("timestamp","desc")
-    .get()
-    .then(snapshot => {
-      let filteredSnapshot = snapshot.docs;
-
-      // filter by date
-      if(fromDate && toDate){
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-        to.setHours(23,59,59,999);
-        filteredSnapshot = filteredSnapshot.filter(docSnap => {
-          const ts = docSnap.data().timestamp?.toDate ? docSnap.data().timestamp.toDate() : new Date(docSnap.data().timestamp);
-          return ts >= from && ts <= to;
-        });
-      }
-
-      renderEntries({ forEach: fn => filteredSnapshot.forEach(fn) }, staffFilter);
-    })
-    .catch(err => {
-      console.error("Error filtering reports:", err);
-      reportList.innerHTML = "<tr><td colspan='9'>Error filtering reports.</td></tr>";
     });
 }
 
