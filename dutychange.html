@@ -207,10 +207,14 @@
     window.location.href = "index.html";
   }
 
-  // Populate recipient dropdown
-  const recipientSelect = document.getElementById("recipient");
+  // Populate recipient dropdown based on same WP
+const recipientSelect = document.getElementById("recipient");
+const currentUserObj = users.find(u => u.name === currentUser);
+if(currentUserObj){
+  const currentWP = currentUserObj.WP;
+
   users.forEach(user => {
-    if(user.name !== currentUser){
+    if(user.name !== currentUser && user.WP === currentWP){
       const option = document.createElement("option");
       option.value = user.name;
       option.textContent = user.name;
@@ -218,13 +222,20 @@
       recipientSelect.appendChild(option);
     }
   });
+}
 
-  // Activate Select2 and auto-fill RcNo2
-  $(document).ready(function() {
-    $('#recipient').select2({
-      placeholder: "--Select--",
-      width: "100%"
-    });
+// Activate Select2 and auto-fill RcNo2
+$(document).ready(function() {
+  $('#recipient').select2({
+    placeholder: "--Select--",
+    width: "100%"
+  });
+
+  $('#recipient').on('change', function () {
+    const selectedOption = this.options[this.selectedIndex];
+    document.getElementById("RcNo2").value = selectedOption ? selectedOption.dataset.rcno : "";
+  });
+});
 
     $('#recipient').on('change', function () {
       const selectedOption = this.options[this.selectedIndex];
@@ -313,4 +324,5 @@
 </script>
 </body>
 </html>
+
 
