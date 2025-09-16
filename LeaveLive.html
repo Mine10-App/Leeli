@@ -24,6 +24,7 @@
 <div class="filters">
   <label>From: <input type="date" id="fromDate"></label>
   <label>To: <input type="date" id="toDate"></label>
+  <label>Staff: <input type="text" id="filterStaff" placeholder="Name"></label>
   <button onclick="filterReports()">Filter</button>
   <button onclick="loadReports()">Reset</button>
 </div>
@@ -48,7 +49,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
-<script src="aqj.js"></script> <!-- to get users array -->
+<script src="aqj.js"></script>
 
 <script>
 firebase.initializeApp(firebaseConfig);
@@ -64,12 +65,15 @@ if(!currentUser || !currentWP){
 }
 
 // Render entries helper
-function renderEntries(snapshot){
+function renderEntries(snapshot, staffFilter = ""){
   reportList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const d = docSnap.data();
     const entryUser = users.find(u => u.name === d.staff);
     if(!entryUser || entryUser.WP !== currentWP) return; // only same WP
+
+    // filter by staff name if provided
+    if(staffFilter && !d.staff.toLowerCase().includes(staffFilter.toLowerCase())) return;
 
     const status = d.status || "pending";
     const row = document.createElement("tr");
@@ -112,33 +116,38 @@ function renderEntries(snapshot){
 function loadReports(){
   db.collection("leave_entries").orderBy("timestamp","desc")
     .get()
-    .then(renderEntries)
+    .then(snapshot => renderEntries(snapshot))
     .catch(err => {
       console.error("Error loading reports:", err);
       reportList.innerHTML = "<tr><td colspan='9'>Error loading reports.</td></tr>";
     });
 }
 
-// Filter by date
+// Filter by date and name
 function filterReports(){
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
-
-  if(!fromDate || !toDate){
-    alert("Please select both From and To dates.");
-    return;
-  }
-
-  const from = new Date(fromDate);
-  const to = new Date(toDate);
-  to.setHours(23,59,59,999);
+  const staffFilter = document.getElementById("filterStaff").value;
 
   db.collection("leave_entries")
-    .where("timestamp", ">=", from)
-    .where("timestamp", "<=", to)
     .orderBy("timestamp","desc")
     .get()
-    .then(renderEntries)
+    .then(snapshot => {
+      let filteredSnapshot = snapshot.docs;
+
+      // filter by date
+      if(fromDate && toDate){
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        to.setHours(23,59,59,999);
+        filteredSnapshot = filteredSnapshot.filter(docSnap => {
+          const ts = docSnap.data().timestamp?.toDate ? docSnap.data().timestamp.toDate() : new Date(docSnap.data().timestamp);
+          return ts >= from && ts <= to;
+        });
+      }
+
+      renderEntries({ forEach: fn => filteredSnapshot.forEach(fn) }, staffFilter);
+    })
     .catch(err => {
       console.error("Error filtering reports:", err);
       reportList.innerHTML = "<tr><td colspan='9'>Error filtering reports.</td></tr>";
