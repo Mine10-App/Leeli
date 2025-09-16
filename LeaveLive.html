@@ -19,7 +19,7 @@
 </head>
 <body>
 
-<h2>All Leave Entries</h2>
+<h2>Leave Entries</h2>
 
 <div class="filters">
   <label>From: <input type="date" id="fromDate"></label>
@@ -45,21 +45,32 @@
   <tbody id="reportList"></tbody>
 </table>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
+<script src="aqj.js"></script> <!-- to get users array -->
 
 <script>
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const reportList = document.getElementById("reportList");
 
-// Render snapshot helper
-function renderSnapshot(snapshot){
+const currentUser = localStorage.getItem("currentUser");
+const currentWP = localStorage.getItem("currentWP");
+
+if(!currentUser || !currentWP){
+  alert("Please login first!");
+  window.location.href = "index.html";
+}
+
+// Render entries helper
+function renderEntries(snapshot){
   reportList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const d = docSnap.data();
+    const entryUser = users.find(u => u.name === d.staff);
+    if(!entryUser || entryUser.WP !== currentWP) return; // only same WP
+
     const status = d.status || "pending";
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -82,12 +93,14 @@ function renderSnapshot(snapshot){
     applyBtn.onclick = async () => {
       if(status !== "applied"){
         await db.collection("leave_entries").doc(docSnap.id).update({ status: "applied" });
+        loadReports();
       }
     };
 
     deleteBtn.onclick = async () => {
       if(confirm("Delete this entry?")){
         await db.collection("leave_entries").doc(docSnap.id).delete();
+        loadReports();
       }
     };
 
@@ -95,50 +108,18 @@ function renderSnapshot(snapshot){
   });
 }
 
-// Load all reports
+// Load all entries
 function loadReports(){
   db.collection("leave_entries").orderBy("timestamp","desc")
-    .onSnapshot(snapshot => {
-      reportList.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        const status = d.status || "pending";
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${d.date}</td>
-          <td>${d.staff}</td>
-          <td>${d.rcNo}</td>
-          <td>${d.leave}</td>
-          <td>${d.reason}</td>
-          <td>${d.duty}</td>
-          <td>${d.submitTime || "-"}</td>
-          <td>${status}</td>
-          <td>
-            <button class="apply-btn ${status==='applied'?'applied':''}" ${status==='applied'?'disabled':''}>Apply</button>
-            <button class="delete-btn">Delete</button>
-          </td>
-        `;
-        const applyBtn = row.querySelector(".apply-btn");
-        const deleteBtn = row.querySelector(".delete-btn");
-
-        applyBtn.onclick = async () => {
-          if(status !== "applied"){
-            await db.collection("leave_entries").doc(docSnap.id).update({ status: "applied" });
-          }
-        };
-
-        deleteBtn.onclick = async () => {
-          if(confirm("Delete this entry?")){
-            await db.collection("leave_entries").doc(docSnap.id).delete();
-          }
-        };
-
-        reportList.appendChild(row);
-      });
+    .get()
+    .then(renderEntries)
+    .catch(err => {
+      console.error("Error loading reports:", err);
+      reportList.innerHTML = "<tr><td colspan='9'>Error loading reports.</td></tr>";
     });
 }
 
-// Filter reports by date
+// Filter by date
 function filterReports(){
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
@@ -157,7 +138,11 @@ function filterReports(){
     .where("timestamp", "<=", to)
     .orderBy("timestamp","desc")
     .get()
-    .then(renderSnapshot);
+    .then(renderEntries)
+    .catch(err => {
+      console.error("Error filtering reports:", err);
+      reportList.innerHTML = "<tr><td colspan='9'>Error filtering reports.</td></tr>";
+    });
 }
 
 // Initial load
