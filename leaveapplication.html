@@ -38,6 +38,26 @@
 
   h2 { text-align: center; margin-bottom: 15px; }
 
+  /* Top buttons */
+  .top-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .top-buttons button {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 6px;
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+  }
+  .top-buttons button:hover { background: #2980b9; }
+
   form .form-row {
     display: flex;
     flex-direction: column;
@@ -106,6 +126,11 @@
 
   <!-- Form -->
   <div class="form-container">
+    <div class="top-buttons">
+      <button onclick="goHome()">Home</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+
     <h2>Leave Form</h2>
     <form id="leaveForm">
       <div class="form-row">
@@ -222,7 +247,6 @@ form.addEventListener("submit", async e=>{
 
   const now = new Date();
 
-  // Sick leave late report check
   if(leaveVal === "Sick Leave"){
     const [dutyH, dutyM] = dutyVal.split(":").map(Number);
     const dutyDateTime = new Date(dateVal);
@@ -282,6 +306,15 @@ function loadEntries(){
         };
       });
     });
+}
+
+function logout(){
+  localStorage.removeItem("currentUser");
+  window.location.href = "index.html";
+}
+
+function goHome(){
+  window.location.href = "dashboard.html";
 }
 
 loadEntries();
