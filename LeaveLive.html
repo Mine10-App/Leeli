@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leave Entries</title>
+<title>Leave Report</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
@@ -21,6 +21,7 @@
 <body>
 
 <h2>Leave Entries</h2>
+
 <div class="filters">
   <label>From: <input type="date" id="fromDate"></label>
   <label>To: <input type="date" id="toDate"></label>
@@ -49,23 +50,32 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
+<script src="aqj.js"></script>
 
 <script>
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const reportList = document.getElementById("reportList");
+
+// Get current user & WP
+const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 const currentWP = localStorage.getItem("currentWP");
 
-if(!currentWP){
+if(!currentUser || !currentWP){
   alert("Please login first!");
   window.location.href = "WPLogin.html";
 }
 
+// Render entries
 function renderEntries(snapshot, staffFilter = "") {
   reportList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const d = docSnap.data();
-    if(d.WP !== currentWP) return; // Only current WP
+
+    // Only show entries for the logged-in WP
+    if(d.WP !== currentWP) return;
+
+    // Filter by staff if provided
     if(staffFilter && !d.staff.toLowerCase().includes(staffFilter.toLowerCase())) return;
 
     const status = d.status || "pending";
@@ -84,6 +94,7 @@ function renderEntries(snapshot, staffFilter = "") {
         <button class="delete-btn">Delete</button>
       </td>
     `;
+
     const applyBtn = row.querySelector(".apply-btn");
     const deleteBtn = row.querySelector(".delete-btn");
 
@@ -105,12 +116,17 @@ function renderEntries(snapshot, staffFilter = "") {
   });
 }
 
+// Load all entries
 function loadReports(){
   db.collection("leave_entries").orderBy("timestamp","desc").get()
     .then(snapshot => renderEntries(snapshot))
-    .catch(err => { console.error(err); reportList.innerHTML = "<tr><td colspan='9'>Error loading reports.</td></tr>"; });
+    .catch(err => {
+      console.error("Error loading reports:", err);
+      reportList.innerHTML = "<tr><td colspan='9'>Error loading reports.</td></tr>";
+    });
 }
 
+// Filter by date and staff
 function filterReports(){
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
@@ -118,20 +134,27 @@ function filterReports(){
 
   db.collection("leave_entries").orderBy("timestamp","desc").get()
     .then(snapshot => {
-      let filtered = snapshot.docs;
+      let filteredSnapshot = snapshot.docs;
+
       if(fromDate && toDate){
         const from = new Date(fromDate);
         const to = new Date(toDate);
         to.setHours(23,59,59,999);
-        filtered = filtered.filter(doc => {
-          const ts = doc.data().timestamp?.toDate ? doc.data().timestamp.toDate() : new Date(doc.data().timestamp);
+        filteredSnapshot = filteredSnapshot.filter(docSnap => {
+          const ts = docSnap.data().timestamp?.toDate ? docSnap.data().timestamp.toDate() : new Date(docSnap.data().timestamp);
           return ts >= from && ts <= to;
         });
       }
-      renderEntries({ forEach: fn => filtered.forEach(fn) }, staffFilter);
+
+      renderEntries({ forEach: fn => filteredSnapshot.forEach(fn) }, staffFilter);
+    })
+    .catch(err => {
+      console.error("Error filtering reports:", err);
+      reportList.innerHTML = "<tr><td colspan='9'>Error filtering reports.</td></tr>";
     });
 }
 
+// Initial load
 loadReports();
 </script>
 </body>
