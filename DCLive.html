@@ -8,36 +8,37 @@
   body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f9f9f9; }
   h2 { margin-left: 20px; color: #333; }
 
- .filters {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 20px;
-}
+  .filters {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 20px;
+    flex-wrap: wrap;
+  }
 
-.filters input[type="date"],
-.filters input[type="text"] {
-  padding: 4px 6px;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  flex: 0 0 auto;
-}
+  .filters input[type="date"],
+  .filters input[type="text"] {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 0 0 auto;
+  }
 
-.filters button {
-  padding: 3px 6px;
-  font-size: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #007BFF;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s;
-  flex: 0 0 auto;
-  width: auto;
-}
-.filters button:hover { background-color: #0056b3; }
+  .filters button {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 0 0 auto;
+    width: auto;
+  }
+  .filters button:hover { background-color: #0056b3; }
 
   /* Table */
   table {
@@ -102,10 +103,19 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
+<script src="aqj.js"></script> <!-- to get users array -->
 
 <script>
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+const currentUser = localStorage.getItem("currentUser");
+const currentWP = localStorage.getItem("currentWP");
+
+if(!currentUser || !currentWP){
+  alert("Please login first!");
+  window.location.href = "index.html";
+}
 
 function loadAcceptedRequests() {
     const tableBody = document.getElementById("requestsTable");
@@ -124,6 +134,11 @@ function loadAcceptedRequests() {
         let rows = "";
         snapshot.forEach(doc => {
           const data = doc.data();
+
+          // find WP of request staff
+          const entryUser = users.find(u => u.name === data.requestedStaff);
+          if(!entryUser || entryUser.WP !== currentWP) return; // skip if not same WP
+
           const requestDate = data.date instanceof firebase.firestore.Timestamp
             ? data.date.toDate().toISOString().split("T")[0]
             : (data.date || "");
@@ -147,7 +162,7 @@ function loadAcceptedRequests() {
           `;
         });
 
-        tableBody.innerHTML = rows || "<tr><td colspan='6'>No accepted requests found (after filters).</td></tr>";
+        tableBody.innerHTML = rows || "<tr><td colspan='6'>No requests found for your WP.</td></tr>";
       })
       .catch(err => {
         console.error("Error fetching requests:", err);
