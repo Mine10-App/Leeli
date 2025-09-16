@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Leave Report</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body { font-family: Arial, sans-serif; background: #eef2f7; margin: 0; padding: 20px; }
   h2 { text-align: center; }
@@ -57,7 +56,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const reportList = document.getElementById("reportList");
 
-// Get current user & WP
+// Get current user and WP
 const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 const currentWP = localStorage.getItem("currentWP");
 
@@ -67,7 +66,7 @@ if(!currentUser || !currentWP){
 }
 
 // Render entries
-function renderEntries(snapshot, staffFilter = "") {
+function renderEntries(snapshot, staffFilter = ""){
   reportList.innerHTML = "";
   snapshot.forEach(docSnap => {
     const d = docSnap.data();
@@ -75,7 +74,7 @@ function renderEntries(snapshot, staffFilter = "") {
     // Only show entries for the logged-in WP
     if(d.WP !== currentWP) return;
 
-    // Filter by staff if provided
+    // Filter by staff name if provided
     if(staffFilter && !d.staff.toLowerCase().includes(staffFilter.toLowerCase())) return;
 
     const status = d.status || "pending";
@@ -94,7 +93,6 @@ function renderEntries(snapshot, staffFilter = "") {
         <button class="delete-btn">Delete</button>
       </td>
     `;
-
     const applyBtn = row.querySelector(".apply-btn");
     const deleteBtn = row.querySelector(".delete-btn");
 
@@ -118,7 +116,8 @@ function renderEntries(snapshot, staffFilter = "") {
 
 // Load all entries
 function loadReports(){
-  db.collection("leave_entries").orderBy("timestamp","desc").get()
+  db.collection("leave_entries").orderBy("timestamp","desc")
+    .get()
     .then(snapshot => renderEntries(snapshot))
     .catch(err => {
       console.error("Error loading reports:", err);
@@ -126,16 +125,19 @@ function loadReports(){
     });
 }
 
-// Filter by date and staff
+// Filter by date and name
 function filterReports(){
   const fromDate = document.getElementById("fromDate").value;
   const toDate = document.getElementById("toDate").value;
   const staffFilter = document.getElementById("filterStaff").value;
 
-  db.collection("leave_entries").orderBy("timestamp","desc").get()
+  db.collection("leave_entries")
+    .orderBy("timestamp","desc")
+    .get()
     .then(snapshot => {
       let filteredSnapshot = snapshot.docs;
 
+      // filter by date
       if(fromDate && toDate){
         const from = new Date(fromDate);
         const to = new Date(toDate);
