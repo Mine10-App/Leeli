@@ -2,44 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WP Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WP Dashboard</title>
 <style>
-body { font-family: Arial, sans-serif; background: #f5f6fa; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
-.dashboard-container { background: #fff; padding:25px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); text-align:center; width:90%; max-width:350px; }
-h2 { margin-bottom:25px; color:#333; font-size:1.4rem; }
-button { width:100%; padding:12px; margin:8px 0; font-size:1rem; border:none; border-radius:6px; cursor:pointer; color:#fff; transition:0.2s; }
-.dc-btn { background:#007BFF; } .dc-btn:hover { background:#0056b3; }
-.leave-btn { background:#28a745; } .leave-btn:hover { background:#1e7e34; }
-.logout-btn { background:#FF5722; } .logout-btn:hover { background:#e64a19; }
-@media(max-width:480px){ h2{ font-size:1.2rem; } button{ font-size:0.95rem; padding:10px; } }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f0f4f8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h2 { margin-bottom: 20px; }
+  button {
+    width: 90%;
+    max-width: 300px;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #fff;
+  }
+  .dclive { background: #28a745; }
+  .leaveLive { background: #ffc107; color: #000; }
+  .logout { background: #dc3545; }
+  button:hover { opacity: 0.85; }
 </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-  <h2>Welcome, <span id="displayName"></span></h2>
-  <button class="dc-btn" onclick="goToDutyChange()">DC Live</button>
-  <button class="leave-btn" onclick="goToLeave()">Leave Live</button>
-  <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
+<h2 id="welcome">Welcome</h2>
+
+<button class="dclive" onclick="alert('DCLive Clicked')">DCLive</button>
+<button class="leaveLive" onclick="alert('LeaveLive Clicked')">LeaveLive</button>
+<button class="logout" onclick="logout()">Logout</button>
 
 <script>
-const currentWP = localStorage.getItem("currentWP");
-const currentName = localStorage.getItem("currentName");
-
-if(!currentWP){
-  alert("Please login first!");
-  window.location.href = "WPLogin.html";
+const user = JSON.parse(localStorage.getItem('currentUser'));
+if(user) {
+  document.getElementById('welcome').innerText = `Welcome, ${user.name}`;
 } else {
-  document.getElementById("displayName").innerText = currentName; // show full name
+  // If no user is logged in, redirect to login
+  window.location.href = "WPLogin.html";
 }
 
-function goToDutyChange(){ window.location.href = "DutyChangeLive.html"; }
-function goToLeave(){ window.location.href = "LeaveLive.html"; }
-function logout(){
-  localStorage.removeItem("currentWP");
-  localStorage.removeItem("currentName");
+function logout() {
+  localStorage.removeItem('currentUser');
   window.location.href = "WPLogin.html";
 }
 </script>
