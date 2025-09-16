@@ -5,33 +5,37 @@
 <title>Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
+  /* Body */
   body {
     font-family: Arial, sans-serif;
-    background: #f5f6fa;
+    background: linear-gradient(135deg, #74ebd5, #ACB6E5);
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
   }
 
+  /* Form container */
   .form-container {
-    width: 95%;
+    width: 90%;
     max-width: 400px;
-    background: #fff;
+    background: #ffffffee;
     padding: 25px 20px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     text-align: center;
   }
 
+  /* Heading */
   h2 {
-    margin-bottom: 20px;
-    font-size: 1.5rem;
+    margin-bottom: 25px;
+    font-size: 1.6rem;
     color: #333;
   }
 
+  /* Form rows */
   .form-row {
     display: flex;
     flex-direction: column;
@@ -43,45 +47,65 @@
     margin-bottom: 5px;
     font-weight: bold;
     font-size: 0.95rem;
-    color: #444;
+    color: #555;
   }
 
   .form-row input {
-    padding: 10px;
+    padding: 12px 10px;
     font-size: 1rem;
+    border-radius: 8px;
     border: 1px solid #ccc;
-    border-radius: 6px;
     width: 100%;
     box-sizing: border-box;
+    transition: border 0.3s;
   }
 
+  .form-row input:focus {
+    border-color: #3498db;
+    outline: none;
+  }
+
+  /* Login button */
   button {
     width: 100%;
-    padding: 12px;
-    font-size: 1rem;
+    padding: 14px;
+    font-size: 1.05rem;
     border: none;
-    border-radius: 6px;
-    background: #3498db;
+    border-radius: 8px;
+    background-color: #3498db;
     color: white;
     cursor: pointer;
-    margin-top: 10px;
     transition: background 0.3s;
+    margin-top: 10px;
   }
 
   button:hover {
-    background: #2980b9;
+    background-color: #2980b9;
   }
 
+  /* Error message */
   #errorMsg {
     margin-top: 12px;
     font-weight: bold;
+    color: red;
   }
 
-  @media(max-width: 480px){
-    h2 { font-size: 1.3rem; }
-    .form-row label { font-size: 0.9rem; }
-    .form-row input { font-size: 0.95rem; padding: 8px; }
-    button { font-size: 0.95rem; padding: 10px; }
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    h2 {
+      font-size: 1.4rem;
+    }
+    .form-row label {
+      font-size: 0.9rem;
+    }
+    .form-row input {
+      font-size: 0.95rem;
+      padding: 10px;
+    }
+    button {
+      font-size: 0.95rem;
+      padding: 12px;
+    }
   }
 </style>
 </head>
@@ -89,21 +113,20 @@
   <div class="form-container">
     <h2>Login</h2>
     <div class="form-row">
-      <label for="username">Username:</label>
+      <label for="username">Username</label>
       <input type="text" id="username" placeholder="Enter your username" required>
     </div>
     <div class="form-row">
-      <label for="password">Password:</label>
+      <label for="password">Password</label>
       <input type="password" id="password" placeholder="Enter your password" required>
     </div>
     <button onclick="login()">Login</button>
-    <p id="errorMsg" style="color:red;"></p>
+    <p id="errorMsg"></p>
   </div>
 
-  <!-- Load separate JS files -->
+  <!-- User data JS -->
   <script src="aqj.js"></script>
 
-  <!-- Login script -->
   <script>
     function login() {
       const username = document.getElementById("username").value.trim();
