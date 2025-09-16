@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Duty Change Request</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -98,6 +100,14 @@
     font-weight: bold;
   }
 
+  /* Make Select2 match input styles */
+  .select2-container--default .select2-selection--single {
+    height: 42px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+  }
+
   @media (max-width: 480px) {
     h2 { font-size: 1.2rem; }
     label { font-size: 0.9rem; }
@@ -164,6 +174,10 @@
 <script src="sca.js"></script> 
 <script src="aqj.js"></script> 
 
+<!-- Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
@@ -186,10 +200,10 @@
 
   function logout(){
     localStorage.removeItem("currentUser");
-    localStorage.removeItem("currentRCNo");
     window.location.href = "index.html";
   }
 
+  // Populate recipient dropdown
   const recipientSelect = document.getElementById("recipient");
   users.forEach(user => {
     if(user.name !== currentUser){
@@ -201,11 +215,21 @@
     }
   });
 
+  // Activate Select2 (searchable dropdown)
+  $(document).ready(function() {
+    $('#recipient').select2({
+      placeholder: "--Select--",
+      width: "100%"
+    });
+  });
+
+  // Auto-fill RCNo2 when recipient selected
   recipientSelect.addEventListener("change", function() {
     const selected = recipientSelect.selectedOptions[0];
     document.getElementById("RcNo2").value = selected ? selected.dataset.rcno : "";
   });
 
+  // Form submit
   document.getElementById("dutyChangeForm").addEventListener("submit", async function(e){
     e.preventDefault();
 
@@ -276,6 +300,8 @@
       if (currentUserObj) {
         document.getElementById("RCNo1").value = currentUserObj.rcNo;
       }
+      $("#recipient").val(null).trigger("change"); // reset dropdown
+      document.getElementById("RcNo2").value = "";
     } catch (error) {
       console.error("Error sending request:", error);
       alert("Error sending request. Check console.");
