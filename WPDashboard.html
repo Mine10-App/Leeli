@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .dashboard {
+    background: #fff;
+    padding: 40px 60px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  h2 {
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  button {
+    display: block;
+    width: 180px;
+    margin: 10px auto;
+    padding: 12px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    transition: 0.2s;
+  }
+
+  .dc-live { background: #3498db; }
+  .dc-live:hover { background: #2980b9; }
+
+  .leave-live { background: #27ae60; }
+  .leave-live:hover { background: #1e8449; }
+
+  .logout { background: #e74c3c; }
+  .logout:hover { background: #c0392b; }
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <h2>Dashboard</h2>
+  <button class="dc-live" onclick="goToDC()">DC Live</button>
+  <button class="leave-live" onclick="goToLeave()">Leave Live</button>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<script>
+  // Check login
+  const currentUser = localStorage.getItem("currentUser");
+  if(!currentUser){
+    alert("Please login first!");
+    window.location.href = "WPLogin.html";
+  }
+
+  function goToDC(){
+    window.location.href = "DCLive.html"; // your DC Live page
+  }
+
+  function goToLeave(){
+    window.location.href = "leave_report.html"; // your Leave Live page
+  }
+
+  function logout(){
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("currentWP");
+    window.location.href = "index.html";
+  }
+</script>
+
+</body>
+</html>
