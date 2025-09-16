@@ -64,21 +64,21 @@
   const currentUser = localStorage.getItem("currentUser");
   if(!currentUser){
     alert("Please login first!");
-    window.location.href = "WPLogin.html";
+    window.location.href = "WPLogin.html"; // updated login page
   }
 
   function goToDC(){
-    window.location.href = "dutychange_report.html"; // your DC Live page
+    window.location.href = "duty_changes.html"; // your DC Live page
   }
 
   function goToLeave(){
-    window.location.href = "LeaveLive.html"; // your Leave Live page
+    window.location.href = "leave_report.html"; // your Leave Live page
   }
 
   function logout(){
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentWP");
-    window.location.href = "index.html";
+    window.location.href = "WPLogin.html"; // updated login page
   }
 </script>
 
