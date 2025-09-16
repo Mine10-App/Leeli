@@ -5,63 +5,98 @@
 <title>Leave Form - Entries</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
-  
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
   .container {
-    display: flex; gap: 30px; width: 95%; max-width: 1200px; flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 95%;
+    max-width: 1200px;
   }
-  
+
+  @media(min-width: 768px){
+    .container {
+      flex-direction: row;
+    }
+  }
+
   .form-container, .entry-list {
-    flex: 1 1 400px; 
-    background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   }
-  
-  form .form-row {
-    display: flex; flex-direction: column; margin-bottom: 12px;
-  }
-  
-  form label { margin-bottom: 4px; font-weight: bold; }
-  
-  form input, form select, form input[type="submit"] {
-    padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1rem; width: 100%;
-    box-sizing: border-box;
-  }
-  
-  form input[readonly] { background: #f0f0f0; }
-  
-  form input[type="submit"] {
-    background: #007bff; color: white; border: none; cursor: pointer; margin-top: 10px;
-  }
-  
-  form input[type="submit"]:hover { background: #0056b3; }
 
   h2 { text-align: center; margin-bottom: 15px; }
 
-  .entry-header, .entry-row {
-    display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 0; align-items: center;
+  form .form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
   }
 
-  .entry-header div { font-weight: bold; flex: 1 1 80px; text-align: center; border-bottom: 2px solid #007bff; font-size: 0.9rem; }
-  .entry-row div { flex: 1 1 80px; text-align: center; background: #f1f1f1; padding: 5px; border-radius: 5px; font-size: 0.85rem; }
-
-  .delete-btn { background: red; color: white; border: none; padding: 4px 8px; border-radius: 5px; cursor: pointer; }
-
-  #message { color: red; margin-top: 10px; text-align: center; font-size: 0.9rem; }
-
-  /* Scrollable entry list for mobile */
-  .entry-list { overflow-x: auto; }
-  
-  @media (max-width: 768px) {
-    .container { flex-direction: column; gap: 20px; }
-    .entry-header div, .entry-row div { flex: 1 1 100px; font-size: 0.8rem; }
-    form label { font-size: 0.9rem; }
-    form input, form select { font-size: 0.95rem; padding: 8px; }
-    form input[type="submit"] { font-size: 0.95rem; padding: 10px; }
+  @media(min-width: 480px){
+    form .form-row {
+      flex-direction: row;
+      align-items: center;
+    }
+    form label {
+      width: 120px;
+      margin-right: 10px;
+    }
+    form input, form select { flex: 1; }
   }
 
-  @media (max-width: 480px) {
-    .entry-header div, .entry-row div { flex: 1 1 90px; font-size: 0.75rem; padding: 4px; }
-    h2 { font-size: 1.2rem; }
+  form label { font-weight: bold; margin-bottom: 5px; }
+  form input, form select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
+  form input[type="submit"] {
+    background: #007bff; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%;
+  }
+  form input[type="submit"]:hover { background: #0056b3; }
+
+  #message { color: red; margin-top: 10px; text-align: center; font-weight: bold; }
+
+  /* Card-style entries for mobile */
+  .entry-card {
+    background: #f9f9f9;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .entry-card div { display: flex; justify-content: space-between; font-size: 0.9rem; }
+  .entry-card button {
+    align-self: flex-end;
+    background: red;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+
+  /* Table-style header for larger screens */
+  .entry-header { display: none; }
+  @media(min-width: 768px){
+    .entry-header { display: flex; gap: 10px; padding: 6px 0; align-items: center; font-weight: bold; border-bottom: 2px solid #007bff; }
+    .entry-header div { flex: 1; text-align: center; }
+    .entry-card { flex-direction: row; gap: 10px; padding: 5px; align-items: center; }
+    .entry-card div { flex: 1; justify-content: center; }
+    .entry-card button { font-size: 0.85rem; padding: 3px 6px; }
   }
 </style>
 </head>
@@ -119,7 +154,7 @@
       <div>Submitted</div>
       <div>Action</div>
     </div>
-    <div id="todayList"></div>
+    <div id="todayList" class="entry-cards"></div>
   </div>
 
 </div>
@@ -134,7 +169,6 @@
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Logged-in user
 const currentUser = localStorage.getItem("currentUser") || "";
 const loggedInUser = users.find(u => u.name === currentUser);
 
@@ -158,7 +192,7 @@ if(loggedInUser){
 const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
 const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
 
-leaveSelect.addEventListener("change", ()=> {
+leaveSelect.addEventListener("change", ()=>{
   reasonSelect.innerHTML = '<option value="">--Choose--</option>';
   let reasons = [];
   if(leaveSelect.value === "Sick Leave") reasons = sickReasons;
@@ -219,27 +253,27 @@ form.addEventListener("submit", async e=>{
   }
 });
 
-// Load entries for current user
+// Load entries
 function loadEntries(){
   db.collection("leave_entries").where("staff","==",loggedInUser.name)
     .onSnapshot(snapshot=>{
       todayList.innerHTML = "";
       snapshot.forEach(docSnap=>{
         const d = docSnap.data();
-        const row = document.createElement("div");
-        row.className="entry-row";
-        row.innerHTML = `
-          <div>${d.date}</div>
-          <div>${d.staff}</div>
-          <div>${d.leave}</div>
-          <div>${d.duty}</div>
-          <div>${d.submitTime || "-"}</div>
-          <div><button class="delete-btn" data-id="${docSnap.id}">X</button></div>
+        const card = document.createElement("div");
+        card.className="entry-card";
+        card.innerHTML = `
+          <div><strong>Date:</strong> <span>${d.date}</span></div>
+          <div><strong>Staff:</strong> <span>${d.staff}</span></div>
+          <div><strong>Leave:</strong> <span>${d.leave}</span></div>
+          <div><strong>Duty:</strong> <span>${d.duty}</span></div>
+          <div><strong>Submitted:</strong> <span>${d.submitTime || "-"}</span></div>
+          <button data-id="${docSnap.id}">Delete</button>
         `;
-        todayList.appendChild(row);
+        todayList.appendChild(card);
       });
 
-      todayList.querySelectorAll(".delete-btn").forEach(btn=>{
+      todayList.querySelectorAll(".entry-card button").forEach(btn=>{
         btn.onclick = async ()=>{
           if(confirm("Delete this entry?")){
             try { await db.collection("leave_entries").doc(btn.dataset.id).delete(); }
