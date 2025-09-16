@@ -31,9 +31,12 @@ const users = [
   { username: "nasma", password: "12345", name: "Nasma Ahmed", rcNo: "A-9480", WP: "Leeli" },
   { username: "saffana", password: "12345", name: "Saffana Abdulla", rcNo: "A-9481", WP: "Leeli" },
   { username: "irufan", password: "12345", name: "Abdulla Irufan", rcNo: "979", WP: "Koveli" },
-  { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623", WP: "Koveli" }
+  { username: "mohamed", password: "12345", name: "Mohamed Ibrahim", rcNo: "623", WP: "Koveli" },
+  { username: "Leeli", password: "12345",  WP: "Leeli" },
+  { username: "Koveli", password: "12345",  WP: "Koveli" }
 
 ];
+
 
 
 
