@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login - WP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f5f6fa; margin:0; }
+.login-container { background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:90%; max-width:350px; }
+h2 { text-align:center; margin-bottom:20px; }
+input { width:100%; padding:10px; margin:5px 0; border-radius:5px; border:1px solid #ccc; box-sizing:border-box; }
+button { width:100%; padding:10px; margin-top:10px; border:none; border-radius:5px; background:#007BFF; color:#fff; cursor:pointer; }
+button:hover { background:#0056b3; }
+#errorMsg { color:red; text-align:center; margin-top:10px; font-size:0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="login-container">
+  <h2>WP Login</h2>
+  <input type="text" id="wpInput" placeholder="Enter WP" required>
+  <input type="password" id="passwordInput" placeholder="Enter Password" required>
+  <button onclick="login()">Login</button>
+  <p id="errorMsg"></p>
+</div>
+
+<script src="aqj.js"></script> <!-- Your users array with WP and password -->
+
+<script>
+function login(){
+  const wp = document.getElementById("wpInput").value.trim();
+  const pass = document.getElementById("passwordInput").value;
+
+  const user = users.find(u => u.WP === wp && u.password === pass);
+  if(user){
+    localStorage.setItem("currentWP", user.WP);
+    localStorage.setItem("currentUserName", user.name);
+    window.location.href = "dutychange_report.html"; // Your duty change page
+  } else {
+    document.getElementById("errorMsg").innerText = "Invalid WP or password!";
+  }
+}
+</script>
+
+</body>
+</html>
