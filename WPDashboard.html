@@ -36,9 +36,9 @@
 
 <h2 id="welcome">Welcome</h2>
 
-<button class="dclive" onclick="alert('DCLive Clicked')">DCLive</button>
-<button class="leaveLive" onclick="alert('LeaveLive Clicked')">LeaveLive</button>
-<button class="logout" onclick="logout()">Logout</button>
+<button class="dc-btn" onclick="goToDutyChange()">DC Live</button>
+<button class="leave-btn" onclick="goToLeave()">Leave Live</button>
+<button class="logout-btn" onclick="logout()">Logout</button>
 
 <script>
 const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -48,7 +48,8 @@ if(user) {
   // If no user is logged in, redirect to login
   window.location.href = "WPLogin.html";
 }
-
+function goToDutyChange(){ window.location.href = "DCLive.html"; }
+function goToLeave(){ window.location.href = "LeaveLive.html"; }
 function logout() {
   localStorage.removeItem('currentUser');
   window.location.href = "WPLogin.html";
