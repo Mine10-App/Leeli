@@ -3,10 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <title>Duty Change Request</title>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  .top-buttons button { padding: 5px 10px; margin-right: 5px; font-size: 0.9rem; }
-  .form-row { margin-bottom: 10px; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .form-container {
+    width: 95%;
+    max-width: 500px;
+    background: #fff;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #333;
+  }
+
+  .top-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .top-buttons button {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 6px;
+    background: #3498db;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .top-buttons button:hover {
+    background: #2980b9;
+  }
+
+  .form-row {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #444;
+  }
+
+  input, select, button[type="submit"] {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  button[type="submit"] {
+    background: #27ae60;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+
+  button[type="submit"]:hover {
+    background: #1e8449;
+  }
+
+  #confirmation {
+    margin-top: 15px;
+    color: green;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  @media (max-width: 480px) {
+    h2 { font-size: 1.2rem; }
+    label { font-size: 0.9rem; }
+    input, select, button { font-size: 0.95rem; }
+  }
 </style>
 </head>
 <body>
@@ -59,7 +155,7 @@
     <button type="submit">Send Request</button>
   </form>
 
-  <div id="confirmation" style="margin-top:15px; color:green;"></div>
+  <div id="confirmation"></div>
 </div>
 
 <!-- Firebase SDK -->
@@ -77,15 +173,10 @@
     alert("Please login first!");
     window.location.href = "index.html";
   } else {
-    // Fill staff name
     document.getElementById("requestedStaff").value = currentUser;
-
-    // Auto-fill RCNo1 from aqj.js
     const currentUserObj = users.find(u => u.name === currentUser);
     if (currentUserObj) {
       document.getElementById("RCNo1").value = currentUserObj.rcNo;
-    } else {
-      document.getElementById("RCNo1").value = "";
     }
   }
 
@@ -99,25 +190,22 @@
     window.location.href = "index.html";
   }
 
-  // Populate recipient dropdown
   const recipientSelect = document.getElementById("recipient");
   users.forEach(user => {
     if(user.name !== currentUser){
       const option = document.createElement("option");
       option.value = user.name;
       option.textContent = user.name;
-      option.dataset.rcno = user.rcNo; // store recipient RCNo
+      option.dataset.rcno = user.rcNo;
       recipientSelect.appendChild(option);
     }
   });
 
-  // Auto-fill RCNo2 when recipient changes
   recipientSelect.addEventListener("change", function() {
     const selected = recipientSelect.selectedOptions[0];
     document.getElementById("RcNo2").value = selected ? selected.dataset.rcno : "";
   });
 
-  // Submit duty change request
   document.getElementById("dutyChangeForm").addEventListener("submit", async function(e){
     e.preventDefault();
 
@@ -125,24 +213,17 @@
     const RCNo1 = document.getElementById("RCNo1").value;
     const dutyTime1 = document.getElementById("dutyTime1").value;
     const recipient = document.getElementById("recipient").value;
-
     const dateInput = document.getElementById("date").value;
     const RCNo2 = document.getElementById("RcNo2").value;
     const dutyTime2 = document.getElementById("dutyTime2").value;
 
-    if(!recipient){
-      alert("Please select a recipient staff.");
-      return;
-    }
-    if(!dateInput){
-      alert("Please select a date.");
-      return;
-    }
+    if(!recipient){ alert("Please select a recipient staff."); return; }
+    if(!dateInput){ alert("Please select a date."); return; }
+    if(requestedStaff === recipient){ alert("You cannot send request to yourself."); return; }
 
     const reqDate = new Date(dateInput);
     const reqTimestamp = firebase.firestore.Timestamp.fromDate(reqDate);
 
-    // Half-month range
     const year = reqDate.getFullYear();
     const month = reqDate.getMonth();
     let startDate, endDate;
@@ -158,7 +239,6 @@
     const endTimestamp   = firebase.firestore.Timestamp.fromDate(endDate);
 
     try {
-      // 1️⃣ Same date check
       const sameDateSnap = await db.collection("dutyRequests")
         .where("requestedStaff", "==", requestedStaff)
         .where("date", "==", reqTimestamp)
@@ -169,7 +249,6 @@
         return;
       }
 
-      // 2️⃣ Half-month limit check
       const snapshot = await db.collection("dutyRequests")
         .where("requestedStaff", "==", requestedStaff)
         .where("date", ">=", startTimestamp)
@@ -181,14 +260,9 @@
         return;
       }
 
-      // 3️⃣ Save request
       await db.collection("dutyRequests").add({
-        requestedStaff,
-        RCNo1,
-        dutyTime1,
-        recipient,
-        RCNo2,
-        dutyTime2,
+        requestedStaff, RCNo1, dutyTime1,
+        recipient, RCNo2, dutyTime2,
         date: reqTimestamp,
         status: "pending",
         applied: false,
@@ -198,10 +272,12 @@
       document.getElementById("confirmation").innerText = `✅ Request sent to ${recipient}.`;
       document.getElementById("dutyChangeForm").reset();
       document.getElementById("requestedStaff").value = currentUser;
-      document.getElementById("RCNo1").value = currentUserObj ? currentUserObj.rcNo : "";
-
+      const currentUserObj = users.find(u => u.name === currentUser);
+      if (currentUserObj) {
+        document.getElementById("RCNo1").value = currentUserObj.rcNo;
+      }
     } catch (error) {
-      console.error("Error checking/adding request:", error);
+      console.error("Error sending request:", error);
       alert("Error sending request. Check console.");
     }
   });
