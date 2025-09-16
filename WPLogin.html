@@ -24,7 +24,7 @@ button:hover { background:#0056b3; }
   <p id="errorMsg"></p>
 </div>
 
-<script src="aqj.js"></script> <!-- users array -->
+<script src="aqj.js"></script> <!-- Your users array with WP, name, password -->
 
 <script>
 function login(){
@@ -33,9 +33,8 @@ function login(){
 
   const user = users.find(u => u.WP === wp && u.password === pass);
   if(user){
-    // Store WP and username for dashboard
     localStorage.setItem("currentWP", user.WP);
-    localStorage.setItem("currentUsername", user.username); // Use username for display
+    localStorage.setItem("currentName", user.name); // store full name for dashboard
     window.location.href = "WPDashboard.html";
   } else {
     document.getElementById("errorMsg").innerText = "Invalid WP or password!";
