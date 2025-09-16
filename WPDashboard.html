@@ -64,7 +64,7 @@
   const currentUser = localStorage.getItem("currentUser");
   if(!currentUser){
     alert("Please login first!");
-    window.location.href = "WPLogin.html"; // updated login page
+    window.location.href = "index.html";
   }
 
   function goToDC(){
@@ -78,7 +78,7 @@
   function logout(){
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentWP");
-    window.location.href = "WPLogin.html"; // updated login page
+    window.location.href = "index.html";
   }
 </script>
 
