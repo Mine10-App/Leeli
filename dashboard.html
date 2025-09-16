@@ -3,60 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <title>Dashboard</title>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0; }
-  .form-container { max-width: 950px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+  }
+
+  .form-container {
+    max-width: 950px;
+    margin: 20px auto;
+    padding: 15px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
 
   .header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
   }
-  .header h2 { margin: 0; }
+
+  .header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
 
   .top-buttons {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
-    align-items: center;
   }
+
   .top-buttons .btn {
-    padding: 8px 9px;
-    font-size: 1rem;
+    padding: 8px 12px;
+    font-size: 0.95rem;
     border: none;
-    border-radius: 2px;
-    background-color: #3f413f;
+    border-radius: 6px;
+    background-color: #3498db;
     color: white;
     cursor: pointer;
     transition: 0.2s;
   }
-  .top-buttons .btn:hover { background-color: #0056b3; }
-  .top-buttons a {
-    color: #007BFF;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 1rem;
+
+  .top-buttons .btn:hover {
+    background-color: #2980b9;
   }
 
-  table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-  th { background: #007BFF; color: #fff; text-align: left; padding: 10px; font-size: 0.95rem; }
-  td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover { background: #f1faff; }
+  h3 {
+    margin-top: 25px;
+    font-size: 1.2rem;
+    color: #333;
+  }
+
+  /* Table wrapper for horizontal scroll */
+  .table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 25px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* allows horizontal scroll on small screens */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  th {
+    background: #007BFF;
+    color: #fff;
+    text-align: left;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.85rem;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover {
+    background: #f1faff;
+  }
 
   .status-pending { color: #ff9800; font-weight: bold; }
   .status-accepted { color: #4CAF50; font-weight: bold; }
   .status-rejected { color: #f44336; font-weight: bold; }
 
-  .accept { background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-  .reject { background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-  .delete { background-color: #FF5722; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-  button:hover { opacity: 0.85; }
+  .accept, .reject, .delete {
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+
+  .accept { background-color: #4CAF50; color: white; }
+  .reject { background-color: #f44336; color: white; }
+  .delete { background-color: #FF5722; color: white; }
 
   @media (max-width: 768px) {
-    table, th, td { font-size: 0.85rem; }
-    .top-buttons .btn, .top-buttons a { font-size: 0.85rem; padding: 6px 12px; }
+    .header h2 { font-size: 1.3rem; margin-bottom: 10px; }
+    .top-buttons .btn { font-size: 0.85rem; padding: 6px 10px; }
+    th, td { font-size: 0.8rem; padding: 8px; }
+    .accept, .reject, .delete { font-size: 0.7rem; padding: 5px 8px; }
+  }
+
+  @media (max-width: 480px) {
+    .form-container { margin: 10px; padding: 12px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .top-buttons { width: 100%; justify-content: flex-start; }
+    table { min-width: 500px; }
   }
 </style>
 </head>
@@ -68,15 +138,14 @@
       <button class="btn" onclick="goToDutyChange()">Request Duty Change</button>
       <button class="btn" onclick="goToLeave()">FRL & Sick Leave Report</button>
       <button class="btn" onclick="logout()">Logout</button>
-      
     </div>
   </div>
 
   <h3>Requests Assigned To You</h3>
-  <div id="incomingRequests"><p>Loading...</p></div>
+  <div class="table-wrapper" id="incomingRequests"><p>Loading...</p></div>
 
   <h3>Requests Sent By You</h3>
-  <div id="sentRequests"><p>Loading...</p></div>
+  <div class="table-wrapper" id="sentRequests"><p>Loading...</p></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -97,7 +166,11 @@ if(!currentUser){
 
 function goToDutyChange(){ window.location.href = "dutychange.html"; }
 function goToLeave(){ window.location.href = "leaveapplication.html"; }
-function logout(){ localStorage.removeItem("currentUser"); localStorage.removeItem("currentRCNo"); window.location.href = "index.html"; }
+function logout(){
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("currentRCNo");
+  window.location.href = "index.html";
+}
 
 function loadRequests() {
   const incomingContainer = document.getElementById("incomingRequests");
@@ -160,10 +233,10 @@ function loadRequests() {
 }
 
 function acceptRequest(id){
-  db.collection("dutyRequests").doc(id).update({status: "accepted"}).then(() => { alert("Request accepted!"); loadRequests(); });
+  db.collection("dutyRequests").doc(id).update({status: "accepted"}).then(() => { loadRequests(); });
 }
 function rejectRequest(id){
-  db.collection("dutyRequests").doc(id).update({status: "rejected"}).then(() => { alert("Request rejected!"); loadRequests(); });
+  db.collection("dutyRequests").doc(id).update({status: "rejected"}).then(() => { loadRequests(); });
 }
 function cancelRequest(id){
   if(confirm("Are you sure you want to cancel this request?")) {
@@ -179,8 +252,3 @@ loadRequests();
 </script>
 </body>
 </html>
-
-
-
-
-
