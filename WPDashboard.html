@@ -5,27 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WP Dashboard</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #f0f4f8;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; }
   h2 { margin-bottom: 20px; }
-  button {
-    width: 90%;
-    max-width: 300px;
-    padding: 15px;
-    margin: 10px 0;
-    font-size: 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    color: #fff;
-  }
+  button { width: 90%; max-width: 300px; padding: 15px; margin: 10px 0; font-size: 16px; border: none; border-radius: 10px; cursor: pointer; color: #fff; }
   .dclive { background: #28a745; }
   .leaveLive { background: #ffc107; color: #000; }
   .logout { background: #dc3545; }
@@ -35,9 +17,8 @@
 <body>
 
 <h2 id="welcome">Welcome</h2>
-
-<button class="dclive" onclick="goToDutyChange()">DC Live</button>
-<button class="leaveLive" onclick="goToLeave()">Leave Live</button>
+<button class="dclive" onclick="openDCLive()">DCLive</button>
+<button class="leaveLive" onclick="openLeaveLive()">LeaveLive</button>
 <button class="logout" onclick="logout()">Logout</button>
 
 <script>
@@ -45,13 +26,15 @@ const user = JSON.parse(localStorage.getItem('currentUser'));
 if(user) {
   document.getElementById('welcome').innerText = `Welcome, ${user.name}`;
 } else {
-  // If no user is logged in, redirect to login
   window.location.href = "WPLogin.html";
 }
-function goToDutyChange(){ window.location.href = "DCLive.html"; }
-function goToLeave(){ window.location.href = "LeaveLive.html"; }
+
+function openDCLive() { window.location.href = "DCLive.html"; }
+function openLeaveLive() { window.location.href = "LeaveLive.html"; }
+
 function logout() {
   localStorage.removeItem('currentUser');
+  localStorage.removeItem('currentWP');
   window.location.href = "WPLogin.html";
 }
 </script>
