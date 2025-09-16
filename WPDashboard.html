@@ -5,142 +5,89 @@
 <title>WP Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body { font-family: Arial, sans-serif; background:#f5f6fa; margin:0; padding:0; }
-.header { display:flex; justify-content:space-between; align-items:center; padding:15px; background:#007BFF; color:white; flex-wrap:wrap; }
-.header h2 { margin:0; font-size:1.2rem; }
-.header .btn { padding:8px 12px; border:none; border-radius:5px; margin-left:5px; cursor:pointer; font-size:0.9rem; color:white; background:#0056b3; }
-.header .btn:hover { background:#003d80; margin-top:5px; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f6fa;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-.container { padding:15px; }
+.dashboard-container {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 350px;
+}
 
-table { width:100%; border-collapse: collapse; margin-top:10px; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-th, td { border:1px solid #ccc; padding:8px; text-align:left; font-size:0.9rem; }
-th { background:#007BFF; color:white; }
-tr:hover { background:#f1faff; }
+h2 {
+  margin-bottom: 25px;
+  color: #333;
+  font-size: 1.4rem;
+}
 
-.table-btn { padding:5px 8px; font-size:0.75rem; border:none; border-radius:4px; cursor:pointer; margin-right:3px; }
-.apply-btn { background:#28a745; color:white; }
-.apply-btn:hover { background:#1e7e34; }
-.delete-btn { background:#FF5722; color:white; }
-.delete-btn:hover { background:#e64a19; }
+button {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  transition: 0.2s;
+}
 
-@media (max-width:768px){
-  .header { flex-direction:column; align-items:flex-start; gap:5px; }
-  table, th, td { font-size:0.8rem; }
-  .header .btn { font-size:0.8rem; padding:6px 10px; }
+.dc-btn { background: #007BFF; }
+.dc-btn:hover { background: #0056b3; }
+
+.leave-btn { background: #28a745; }
+.leave-btn:hover { background: #1e7e34; }
+
+.logout-btn { background: #FF5722; }
+.logout-btn:hover { background: #e64a19; }
+
+@media(max-width:480px){
+  h2 { font-size: 1.2rem; }
+  button { font-size: 0.95rem; padding: 10px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="dashboard-container">
   <h2>Welcome, <span id="userName"></span></h2>
-  <div>
-    <button class="btn" onclick="goToDutyChange()">DC Live</button>
-    <button class="btn" onclick="goToLeave()">Leave Live</button>
-    <button class="btn" onclick="logout()">Logout</button>
-  </div>
+  
+  <button class="dc-btn" onclick="goToDutyChange()">DC Live</button>
+  <button class="leave-btn" onclick="goToLeave()">Leave Live</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
-
-<div class="container">
-  <table>
-    <thead>
-      <tr>
-        <th>Request Staff</th>
-        <th>Recipient</th>
-        <th>Date</th>
-        <th>Duty Time</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="requestsTable">
-      <tr><td colspan="6">Loading...</td></tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="sca.js"></script>
 
 <script>
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const currentWP = localStorage.getItem("currentWP");
 const userName = localStorage.getItem("currentUserName");
+const currentWP = localStorage.getItem("currentWP");
 
 if(!currentWP){
   alert("Please login first!");
   window.location.href = "WPLogin.html";
 } else {
-  document.getElementById("userName").innerText = userName;
+  document.getElementById("userName").innerText = userName || currentWP;
 }
 
-// Navigation buttons
+// Navigation functions
 function goToDutyChange(){ window.location.href = "DutyChangeLive.html"; }
 function goToLeave(){ window.location.href = "LeaveLive.html"; }
-function logout(){ localStorage.removeItem("currentWP"); localStorage.removeItem("currentUserName"); window.location.href = "WPLogin.html"; }
-
-// Load requests for this WP only
-function loadRequests(){
-  const tableBody = document.getElementById("requestsTable");
-  tableBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
-
-  db.collection("dutyRequests")
-    .where("WP", "==", currentWP)
-    .orderBy("date")
-    .get()
-    .then(snapshot => {
-      if(snapshot.empty){
-        tableBody.innerHTML = "<tr><td colspan='6'>No requests found for your WP.</td></tr>";
-        return;
-      }
-
-      let rows = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const dateStr = data.date instanceof firebase.firestore.Timestamp ? data.date.toDate().toISOString().split("T")[0] : data.date;
-        const status = data.status || "pending";
-        rows += `<tr>
-          <td>${data.requestedStaff}</td>
-          <td>${data.recipient}</td>
-          <td>${dateStr}</td>
-          <td>${data.dutyTime || ""}</td>
-          <td>${status}</td>
-          <td>
-            ${status==='applied' ? 'Applied' : `<button class="table-btn apply-btn" onclick="markApplied('${doc.id}')">Apply</button>`}
-            <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')">Delete</button>
-          </td>
-        </tr>`;
-      });
-
-      tableBody.innerHTML = rows;
-    })
-    .catch(err => {
-      console.error("Error fetching requests:", err);
-      tableBody.innerHTML = "<tr><td colspan='6'>Error loading requests.</td></tr>";
-    });
+function logout(){
+  localStorage.removeItem("currentWP");
+  localStorage.removeItem("currentUserName");
+  window.location.href = "WPLogin.html";
 }
-
-function markApplied(id){
-  db.collection("dutyRequests").doc(id).update({ applied:true })
-    .then(()=> loadRequests())
-    .catch(err=>console.error(err));
-}
-
-function deleteRequest(id){
-  if(confirm("Are you sure you want to delete this request?")){
-    db.collection("dutyRequests").doc(id).delete()
-      .then(()=> loadRequests())
-      .catch(err=>console.error(err));
-  }
-}
-
-// Initial load
-loadRequests();
 </script>
 
 </body>
