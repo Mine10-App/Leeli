@@ -3,144 +3,185 @@
 <head>
 <meta charset="UTF-8">
 <title>Duty Changes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 <style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f9f9f9; }
-h2 { margin-left: 20px; color: #333; }
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f9f9f9; }
+  h2 { margin-left: 20px; color: #333; }
 
-.filters { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:10px 20px; flex-wrap:wrap; }
-.filters input, .filters button { padding:4px 6px; font-size:0.85rem; border-radius:4px; border:1px solid #ccc; }
-.filters button { background:#007BFF; color:#fff; cursor:pointer; border:none; }
-.filters button:hover { background:#0056b3; }
+  .filters {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 20px;
+    flex-wrap: wrap;
+  }
 
-table { width:95%; margin:0 auto 20px; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-th, td { border:1px solid #ccc; padding:8px; text-align:left; font-size:0.9rem; }
-th { background:#007BFF; color:#fff; }
-tr:hover { background:#f1faff; }
+  .filters input[type="date"],
+  .filters input[type="text"] {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 0 0 auto;
+  }
 
-.table-btn { padding:3px 6px; font-size:0.75rem; border:none; border-radius:3px; cursor:pointer; margin:2px; }
-.apply-btn { background:#4CAF50; color:#fff; }
-.apply-btn:hover { background:#3e8e41; }
-.delete-btn { background:#FF5722; color:#fff; }
-.delete-btn:hover { background:#e64a19; }
+  .filters button {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+    flex: 0 0 auto;
+    width: auto;
+  }
+  .filters button:hover { background-color: #0056b3; }
 
-@media (max-width:768px){ table, th, td{ font-size:0.85rem; } .filters input, .filters button{ font-size:0.75rem; padding:3px 5px; } }
+  /* Table */
+  table {
+    width: 95%;
+    margin: 0 auto 20px;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 0.9rem; }
+  th { background-color: #007BFF; color: #fff; }
+  tr:hover { background: #f1faff; }
+
+  /* Action buttons */
+  .table-btn {
+    padding: 3px 6px;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 2px;
+    transition: 0.2s;
+  }
+  .apply-btn { background-color: #4CAF50; color: white; }
+  .apply-btn:hover { background-color: #3e8e41; }
+  .delete-btn { background-color: #FF5722; color: white; }
+  .delete-btn:hover { background-color: #e64a19; }
+
+  @media (max-width: 768px) {
+    table, th, td { font-size: 0.85rem; }
+    .filters input, .filters button { font-size: 0.75rem; padding: 3px 5px; }
+  }
 </style>
 </head>
 <body>
-<h2>Duty Change - <span id="wpName"></span></h2>
+<h2>Duty Change</h2>
 
 <div class="filters">
   <label>Date: <input type="date" id="filterDate"></label>
   <label>Request Staff: <input type="text" id="filterStaff" placeholder="Name"></label>
   <button onclick="loadAcceptedRequests()">Filter</button>
-  <button onclick="logout()">Logout</button>
 </div>
 
 <table>
-<thead>
-<tr>
-  <th>Request Staff</th>
-  <th>Recipient</th>
-  <th>Date</th>
-  <th>Duty Time</th>
-  <th>Status</th>
-  <th>Actions</th>
-</tr>
-</thead>
-<tbody id="requestsTable">
-<tr><td colspan="6">Loading...</td></tr>
-</tbody>
+  <thead>
+    <tr>
+      <th>Request Staff</th>
+      <th>Recipient</th>
+      <th>Date</th>
+      <th>Duty Time</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="requestsTable">
+    <tr><td colspan="6">Loading...</td></tr>
+  </tbody>
 </table>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script src="sca.js"></script>
+<script src="aqj.js"></script> <!-- to get users array -->
 
 <script>
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+const currentUser = localStorage.getItem("currentUser");
 const currentWP = localStorage.getItem("currentWP");
-const currentUserName = localStorage.getItem("currentUserName");
 
-if(!currentWP){
+if(!currentUser || !currentWP){
   alert("Please login first!");
-  window.location.href = "login.html";
-} else {
-  document.getElementById("wpName").innerText = currentWP;
+  window.location.href = "index.html";
 }
 
-function logout(){
-  localStorage.removeItem("currentWP");
-  localStorage.removeItem("currentUserName");
-  window.location.href = "login.html";
+function loadAcceptedRequests() {
+    const tableBody = document.getElementById("requestsTable");
+    const filterDate = document.getElementById("filterDate").value;
+    const filterStaff = document.getElementById("filterStaff").value.toLowerCase();
+
+    tableBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+    db.collection("dutyRequests").where("status", "==", "accepted").get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          tableBody.innerHTML = "<tr><td colspan='6'>No accepted requests found.</td></tr>";
+          return;
+        }
+
+        let rows = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+
+          // find WP of request staff
+          const entryUser = users.find(u => u.name === data.requestedStaff);
+          if(!entryUser || entryUser.WP !== currentWP) return; // skip if not same WP
+
+          const requestDate = data.date instanceof firebase.firestore.Timestamp
+            ? data.date.toDate().toISOString().split("T")[0]
+            : (data.date || "");
+          const staffName = (data.requestedStaff || "").toLowerCase();
+
+          if ((filterDate && filterDate !== requestDate) ||
+              (filterStaff && !staffName.includes(filterStaff))) return;
+
+          rows += `
+            <tr>
+              <td>${data.requestedStaff || ""}</td>
+              <td>${data.recipient || ""}</td>
+              <td>${requestDate}</td>
+              <td>${data.dutyTime || ""}</td>
+              <td>${data.status || ""}</td>
+              <td>
+                ${data.applied ? 'Applied' : `<button class="table-btn apply-btn" onclick="markApplied('${doc.id}')">Apply</button>`}
+                <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableBody.innerHTML = rows || "<tr><td colspan='6'>No requests found for your WP.</td></tr>";
+      })
+      .catch(err => {
+        console.error("Error fetching requests:", err);
+        tableBody.innerHTML = "<tr><td colspan='6'>Error loading requests.</td></tr>";
+      });
 }
 
-function loadAcceptedRequests(){
-  const tableBody = document.getElementById("requestsTable");
-  const filterDate = document.getElementById("filterDate").value;
-  const filterStaff = document.getElementById("filterStaff").value.toLowerCase();
+function markApplied(id) {
+    db.collection("dutyRequests").doc(id).update({ applied: true })
+      .then(() => loadAcceptedRequests())
+      .catch(err => console.error("Error updating:", err));
+}
 
-  tableBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
-
-  db.collection("dutyRequests").where("status", "==", "accepted").get()
-  .then(snapshot=>{
-    if(snapshot.empty){
-      tableBody.innerHTML = "<tr><td colspan='6'>No accepted requests found.</td></tr>";
-      return;
+function deleteRequest(id) {
+    if (confirm("Are you sure you want to delete this request?")) {
+        db.collection("dutyRequests").doc(id).delete()
+          .then(() => loadAcceptedRequests())
+          .catch(err => console.error("Error deleting:", err));
     }
-
-    let rows = "";
-    snapshot.forEach(doc=>{
-      const data = doc.data();
-      const requestDate = data.date instanceof firebase.firestore.Timestamp
-        ? data.date.toDate().toISOString().split("T")[0]
-        : (data.date || "");
-      const staffName = (data.requestedStaff || "").toLowerCase();
-
-      // **Filter by login WP**
-      const entryUser = users.find(u=>u.name===data.requestedStaff);
-      if(!entryUser || entryUser.WP !== currentWP) return;
-
-      if((filterDate && filterDate!==requestDate) || (filterStaff && !staffName.includes(filterStaff))) return;
-
-      rows += `
-      <tr>
-        <td>${data.requestedStaff || ""}</td>
-        <td>${data.recipient || ""}</td>
-        <td>${requestDate}</td>
-        <td>${data.dutyTime || ""}</td>
-        <td>${data.status || ""}</td>
-        <td>
-          ${data.applied ? 'Applied' : `<button class="table-btn apply-btn" onclick="markApplied('${doc.id}')">Apply</button>`}
-          <button class="table-btn delete-btn" onclick="deleteRequest('${doc.id}')">Delete</button>
-        </td>
-      </tr>
-      `;
-    });
-
-    tableBody.innerHTML = rows || "<tr><td colspan='6'>No accepted requests found (after filters).</td></tr>";
-  })
-  .catch(err=>{
-    console.error(err);
-    tableBody.innerHTML = "<tr><td colspan='6'>Error loading requests.</td></tr>";
-  });
-}
-
-function markApplied(id){
-  db.collection("dutyRequests").doc(id).update({ applied:true })
-    .then(()=>loadAcceptedRequests())
-    .catch(err=>console.error(err));
-}
-
-function deleteRequest(id){
-  if(confirm("Are you sure?")){
-    db.collection("dutyRequests").doc(id).delete()
-      .then(()=>loadAcceptedRequests())
-      .catch(err=>console.error(err));
-  }
 }
 
 // Initial load
