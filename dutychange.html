@@ -80,6 +80,10 @@
     box-sizing: border-box;
   }
 
+  input[readonly] {
+    background: #f0f0f0;
+  }
+
   button[type="submit"] {
     background: #27ae60;
     color: #fff;
@@ -215,18 +219,17 @@
     }
   });
 
-  // Activate Select2 (searchable dropdown)
+  // Activate Select2 and auto-fill RcNo2
   $(document).ready(function() {
     $('#recipient').select2({
       placeholder: "--Select--",
       width: "100%"
     });
-  });
 
-  // Auto-fill RCNo2 when recipient selected
-  recipientSelect.addEventListener("change", function() {
-    const selected = recipientSelect.selectedOptions[0];
-    document.getElementById("RcNo2").value = selected ? selected.dataset.rcno : "";
+    $('#recipient').on('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      document.getElementById("RcNo2").value = selectedOption ? selectedOption.dataset.rcno : "";
+    });
   });
 
   // Form submit
@@ -300,7 +303,7 @@
       if (currentUserObj) {
         document.getElementById("RCNo1").value = currentUserObj.rcNo;
       }
-      $("#recipient").val(null).trigger("change"); // reset dropdown
+      $("#recipient").val(null).trigger("change");
       document.getElementById("RcNo2").value = "";
     } catch (error) {
       console.error("Error sending request:", error);
@@ -308,6 +311,5 @@
     }
   });
 </script>
-
 </body>
 </html>
