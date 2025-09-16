@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WP Login</title>
-<script src="wpl.js"></script>
+<script src="aqj.js"></script>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -24,30 +24,13 @@
     max-width: 400px;
   }
   h2 { text-align: center; margin-bottom: 20px; }
-  input {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-  }
-  button {
-    width: 100%;
-    padding: 12px;
-    background: #007BFF;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    margin-top: 12px;
-    cursor: pointer;
-    font-size: 16px;
-  }
+  input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; }
+  button { width: 100%; padding: 12px; background: #007BFF; color: #fff; border: none; border-radius: 8px; margin-top: 12px; cursor: pointer; font-size: 16px; }
   button:hover { background: #0056b3; }
   .error { color: red; text-align: center; margin-top: 10px; }
 </style>
 </head>
 <body>
-
 <div class="login-container">
   <h2>WP Login</h2>
   <input type="text" id="username" placeholder="Username">
@@ -63,14 +46,13 @@ function login() {
   const user = users.find(u => u.username === username && u.password === password);
 
   if(user) {
-    // Save user info in localStorage
     localStorage.setItem('currentUser', JSON.stringify(user));
+    localStorage.setItem('currentWP', user.WP);
     window.location.href = "WPDashboard.html";
   } else {
     document.getElementById('error').innerText = "Invalid username or password!";
   }
 }
 </script>
-
 </body>
 </html>
