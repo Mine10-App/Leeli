@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Duty Change Request</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  :root {
+    --primary: #4361ee;
+    --primary-light: #eef0ff;
+    --secondary: #3a0ca3;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --warning: #fca311;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --gray-light: #e9ecef;
+    --border: #dee2e6;
+    --card-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    --card-shadow-hover: 0 12px 30px rgba(0,0,0,0.15);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--dark);
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+  }
+
+  .app-container:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .app-header {
+    background: linear-gradient(120deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .app-header::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .app-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+
+  .app-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .app-title i {
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+  }
+
+  .app-title h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .top-buttons {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .top-buttons button {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(5px);
+  }
+
+  .top-buttons button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .app-body {
+    padding: 30px;
+  }
+
+  .form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  .form-section {
+    background: var(--light);
+    padding: 25px;
+    border-radius: 16px;
+    border-left: 5px solid var(--primary);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .form-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .form-section h3 {
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-light);
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .input-icon {
+    color: var(--primary);
+    width: 20px;
+  }
+
+  input, select {
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 100%;
+    transition: all 0.3s;
+    background: #fff;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+    transform: translateY(-2px);
+  }
+
+  input[readonly] {
+    background-color: var(--gray-light);
+    color: var(--gray);
+    cursor: not-allowed;
+  }
+
+  .submit-area {
+    grid-column: span 2;
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  button[type="submit"] {
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    padding: 16px 35px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 20px rgba(67, 97, 238, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  button[type="submit"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+  }
+
+  button[type="submit"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+  }
+
+  button[type="submit"]:hover::before {
+    left: 100%;
+  }
+
+  #confirmation {
+    margin-top: 25px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #d4edda;
+    color: #155724;
+    text-align: center;
+    font-weight: 600;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #28a745;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .info-text {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 8px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .info-text i {
+    color: var(--primary);
+  }
+
+  /* Select2 customization */
+  .select2-container--default .select2-selection--single {
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 30px;
+    padding-left: 0;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px;
+    right: 10px;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: var(--gray) transparent transparent transparent;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive design */
+  @media (max-width: 900px) {
+    .form-container {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+
+    .submit-area {
+      grid-column: span 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .app-header {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .top-buttons {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .app-body {
+      padding: 20px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 10px;
+    }
+
+    .app-title h1 {
+      font-size: 1.5rem;
+    }
+
+    .form-section {
+      padding: 20px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .top-buttons {
+      flex-direction: column;
+    }
+    
+    .top-buttons button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <div class="app-header">
+    <div class="app-title">
+      <i class="fas fa-exchange-alt"></i>
+      <h1>Duty Change Request</h1>
+    </div>
+
+    <div class="top-buttons">
+      <button onclick="goToDashboard()"><i class="fas fa-home"></i> Home</button>
+      <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <form id="dutyChangeForm">
+      <div class="form-container">
+        <div class="form-section">
+          <h3><i class="fas fa-user-clock"></i> Your Details</h3>
+
+          <div class="form-row">
+            <label for="requestedStaff"><i class="fas fa-user input-icon"></i> Requested Staff:</label>
+            <input type="text" id="requestedStaff" readonly>
+          </div>
+
+          <div class="form-row">
+            <label for="RCNo1"><i class="fas fa-id-card input-icon"></i> RCNo:</label>
+            <input type="text" id="RCNo1" readonly>
+          </div>
+
+          <div class="form-row">
+            <label for="date"><i class="fas fa-calendar-day input-icon"></i> Date:</label>
+            <input type="date" id="date" required>
+          </div>
+
+          <div class="form-row">
+            <label for="dutyTime1"><i class="fas fa-clock input-icon"></i> Duty Time:</label>
+            <input type="time" id="dutyTime1" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3><i class="fas fa-user-friends"></i> Recipient Details</h3>
+
+          <div class="form-row">
+            <label for="recipient"><i class="fas fa-users input-icon"></i> Recipient Staff:</label>
+            <select id="recipient" required>
+              <option value="">-- Select Staff --</option>
+            </select>
+            <p class="info-text"><i class="fas fa-info-circle"></i> Only staff from your work location are shown</p>
+          </div>
+
+          <div class="form-row">
+            <label for="RcNo2"><i class="fas fa-id-card input-icon"></i> RCNo:</label>
+            <input type="text" id="RcNo2" readonly>
+          </div>
+
+          <div class="form-row">
+            <label for="dutyTime2"><i class="fas fa-clock input-icon"></i> Duty Time:</label>
+            <input type="time" id="dutyTime2" required>
+          </div>
+        </div>
+
+        <div class="submit-area">
+          <button type="submit"><i class="fas fa-paper-plane"></i> Send Request</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="confirmation"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="sca.js"></script> 
+<script src="aqj.js"></script> 
+
+<!-- Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+  // All JavaScript code remains exactly the same as in the original
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const currentUser = localStorage.getItem("currentUser");
+  if (!currentUser) {
+    alert("Please login first!");
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("requestedStaff").value = currentUser;
+    const currentUserObj = users.find(u => u.name === currentUser);
+    if (currentUserObj) {
+      document.getElementById("RCNo1").value = currentUserObj.rcNo;
+    }
+  }
+
+  function goToDashboard(){
+    window.location.href = "dashboard.html";
+  }
+
+  function logout(){
+    localStorage.removeItem("currentUser");
+    window.location.href = "index.html";
+  }
+
+  // Populate recipient dropdown based on same WP
+  const recipientSelect = document.getElementById("recipient");
+  const currentUserObj = users.find(u => u.name === currentUser);
+  if(currentUserObj){
+    const currentWP = currentUserObj.WP;
+
+    users.forEach(user => {
+      if(user.name !== currentUser && user.WP === currentWP){
+        const option = document.createElement("option");
+        option.value = user.name;
+        option.textContent = user.name;
+        option.dataset.rcno = user.rcNo;
+        recipientSelect.appendChild(option);
+      }
+    });
+  }
+
+  // Activate Select2 and auto-fill RcNo2
+  $(document).ready(function() {
+    $('#recipient').select2({
+      placeholder: "-- Select Staff --",
+      width: "100%"
+    });
+
+    $('#recipient').on('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      document.getElementById("RcNo2").value = selectedOption ? selectedOption.dataset.rcno : "";
+    });
+  });
+
+  // Form submit
+  document.getElementById("dutyChangeForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const requestedStaff = document.getElementById("requestedStaff").value;
+    const RCNo1 = document.getElementById("RCNo1").value;
+    const dutyTime1 = document.getElementById("dutyTime1").value;
+    const recipient = document.getElementById("recipient").value;
+    const dateInput = document.getElementById("date").value;
+    const RCNo2 = document.getElementById("RcNo2").value;
+    const dutyTime2 = document.getElementById("dutyTime2").value;
+
+    if(!recipient){ alert("Please select a recipient staff."); return; }
+    if(!dateInput){ alert("Please select a date."); return; }
+    if(requestedStaff === recipient){ alert("You cannot send request to yourself."); return; }
+
+    const reqDate = new Date(dateInput);
+    const reqTimestamp = firebase.firestore.Timestamp.fromDate(reqDate);
+
+    const year = reqDate.getFullYear();
+    const month = reqDate.getMonth();
+    let startDate, endDate;
+    if (reqDate.getDate() <= 15) {
+      startDate = new Date(year, month, 1);
+      endDate   = new Date(year, month, 15, 23, 59, 59);
+    } else {
+      startDate = new Date(year, month, 16);
+      endDate   = new Date(year, month + 1, 0, 23, 59, 59);
+    }
+
+    const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
+    const endTimestamp   = firebase.firestore.Timestamp.fromDate(endDate);
+
+    try {
+      const sameDateSnap = await db.collection("dutyRequests")
+        .where("requestedStaff", "==", requestedStaff)
+        .where("date", "==", reqTimestamp)
+        .get();
+
+      if (!sameDateSnap.empty) {
+        alert("⚠️ You already made a request for this date.");
+        return;
+      }
+
+      const snapshot = await db.collection("dutyRequests")
+        .where("requestedStaff", "==", requestedStaff)
+        .where("date", ">=", startTimestamp)
+        .where("date", "<=", endTimestamp)
+        .get();
+
+      if (snapshot.size >= 2) {
+        alert("⚠️ You can only make 2 requests per half-month (1–15 or 16–end).");
+        return;
+      }
+
+      await db.collection("dutyRequests").add({
+        requestedStaff, RCNo1, dutyTime1,
+        recipient, RCNo2, dutyTime2,
+        date: reqTimestamp,
+        status: "pending",
+        applied: false,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      const confirmation = document.getElementById("confirmation");
+      confirmation.innerText = `✅ Request successfully sent to ${recipient}.`;
+      confirmation.style.display = "block";
+
+      // Hide confirmation after 5 seconds
+      setTimeout(() => {
+        confirmation.style.display = "none";
+      }, 5000);
+
+      document.getElementById("dutyChangeForm").reset();
+      document.getElementById("requestedStaff").value = currentUser;
+      const currentUserObj = users.find(u => u.name === currentUser);
+      if (currentUserObj) {
+        document.getElementById("RCNo1").value = currentUserObj.rcNo;
+      }
+      $("#recipient").val(null).trigger("change");
+      document.getElementById("RcNo2").value = "";
+    } catch (error) {
+      console.error("Error sending request:", error);
+      alert("Error sending request. Check console.");
+    }
+  });
+</script>
+</body>
+</html>
