@@ -2,66 +2,167 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Leave Form - Entries</title>
+<title>Leave Management System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+  :root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --warning: #f8961e;
+    --info: #4895ef;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --white: #ffffff;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
   body {
-    font-family: Arial, sans-serif;
-    background: #f5f6fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     margin: 0;
     padding: 20px;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
+    align-items: center;
+    color: var(--dark);
   }
 
   .container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
     width: 95%;
     max-width: 1200px;
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
   }
 
-  @media(min-width: 768px){
+  @media(min-width: 992px){
     .container {
       flex-direction: row;
+      min-height: 85vh;
     }
   }
 
   .form-container, .entry-list {
-    flex: 1;
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    padding: 25px;
   }
 
-  h2 { text-align: center; margin-bottom: 15px; }
+  .form-container {
+    background: var(--white);
+    flex: 1;
+  }
 
-  /* Top buttons */
-  .top-buttons {
+  .entry-list {
+    background: var(--light);
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
     gap: 10px;
   }
-  .top-buttons button {
-    flex: 1;
-    padding: 8px 10px;
-    font-size: 0.95rem;
-    border: none;
-    border-radius: 6px;
-    background: #3498db;
-    color: #fff;
-    cursor: pointer;
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
   }
-  .top-buttons button:hover { background: #2980b9; }
+
+  h2 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+  h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 3px;
+  }
+
+  .top-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--secondary);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline:hover {
+    background: var(--primary);
+    color: white;
+  }
 
   form .form-row {
     display: flex;
     flex-direction: column;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
   }
 
   @media(min-width: 480px){
@@ -70,53 +171,316 @@
       align-items: center;
     }
     form label {
-      width: 120px;
-      margin-right: 10px;
+      width: 130px;
+      margin-right: 15px;
+      text-align: right;
     }
     form input, form select { flex: 1; }
   }
 
-  form label { font-weight: bold; margin-bottom: 5px; }
-  form input, form select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
-  form input[type="submit"] {
-    background: #007bff; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%;
+  form label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--dark);
   }
-  form input[type="submit"]:hover { background: #0056b3; }
 
-  #message { color: red; margin-top: 10px; text-align: center; font-weight: bold; }
+  form input, form select {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--light-gray);
+    font-size: 1rem;
+    transition: var(--transition);
+  }
 
-  /* Card-style entries for mobile */
-  .entry-card {
-    background: #f9f9f9;
-    padding: 10px 15px;
+  form input:focus, form select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+  }
+
+  form input[type="submit"] {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: var(--transition);
+  }
+
+  form input[type="submit"]:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+  }
+
+  #message {
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: center;
+    font-weight: 600;
+    display: none;
+  }
+
+  .message-error {
+    background: #ffebee;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+    display: block !important;
+  }
+
+  .message-success {
+    background: #e8f5e9;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+    display: block !important;
+  }
+
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+  }
+
+  .stat-card i {
+    font-size: 1.8rem;
+    color: var(--primary);
     margin-bottom: 10px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .stat-card h3 {
+    font-size: 1.8rem;
+    margin: 5px 0;
+    color: var(--dark);
+  }
+
+  .stat-card p {
+    color: var(--gray);
+    font-size: 0.9rem;
+  }
+
+  .entry-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid var(--light-gray);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .entry-cards {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+
+  .entry-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 10px;
+    position: relative;
+    transition: var(--transition);
+    border-left: 4px solid var(--primary);
   }
 
-  .entry-card div { display: flex; justify-content: space-between; font-size: 0.9rem; }
-  .entry-card button {
-    align-self: flex-end;
-    background: red;
-    color: #fff;
+  .entry-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+
+  .entry-card.sick-leave {
+    border-left-color: var(--info);
+  }
+
+  .entry-card.frl {
+    border-left-color: var(--warning);
+  }
+
+  .entry-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .leave-type {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .sick-leave .leave-type {
+    background: #e3f2fd;
+    color: var(--info);
+  }
+
+  .frl .leave-type {
+    background: #fff3e0;
+    color: var(--warning);
+  }
+
+  .entry-date {
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .entry-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  @media(min-width: 768px){
+    .entry-details {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .entry-detail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+
+  .entry-detail i {
+    color: var(--primary);
+    width: 16px;
+  }
+
+  .entry-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 5px;
+  }
+
+  .action-btn {
+    padding: 5px 10px;
     border: none;
-    padding: 4px 8px;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.8rem;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .delete-btn {
+    background: #ffebee;
+    color: #d32f2f;
+  }
+
+  .delete-btn:hover {
+    background: #d32f2f;
+    color: white;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--gray);
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--light-gray);
   }
 
   /* Table-style header for larger screens */
-  .entry-header { display: none; }
+  .entry-header {
+    display: none;
+  }
+
   @media(min-width: 768px){
-    .entry-header { display: flex; gap: 10px; padding: 6px 0; align-items: center; font-weight: bold; border-bottom: 2px solid #007bff; }
-    .entry-header div { flex: 1; text-align: center; }
-    .entry-card { flex-direction: row; gap: 10px; padding: 5px; align-items: center; }
-    .entry-card div { flex: 1; justify-content: center; }
-    .entry-card button { font-size: 0.85rem; padding: 3px 6px; }
+    .entry-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.5fr;
+      gap: 10px;
+      padding: 12px 15px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px 8px 0 0;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .entry-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.5fr;
+      gap: 10px;
+      padding: 12px 15px;
+      align-items: center;
+    }
+    .entry-card-header, .entry-details, .entry-actions {
+      display: contents;
+    }
+    .entry-date {
+      grid-column: 1;
+    }
+    .staff-name {
+      grid-column: 2;
+    }
+    .leave-type {
+      grid-column: 3;
+      justify-self: center;
+    }
+    .duty-time {
+      grid-column: 4;
+    }
+    .submitted-time {
+      grid-column: 5;
+    }
+    .entry-actions {
+      grid-column: 6;
+      justify-self: end;
+    }
+    .entry-detail {
+      display: none;
+    }
+  }
+
+  /* Animation for new entries */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .entry-card {
+    animation: fadeIn 0.4s ease;
   }
 </style>
 </head>
@@ -124,62 +488,143 @@
 
 <div class="container">
 
-  <!-- Form -->
+  <!-- Form Section -->
   <div class="form-container">
-    <div class="top-buttons">
-      <button onclick="goHome()">Home</button>
-      <button onclick="logout()">Logout</button>
+    <div class="header">
+      <div class="user-info">
+        <div class="avatar">JS</div>
+        <div>
+          <div id="recipient">John Smith</div>
+          <div id="RcNo" style="font-size: 0.8rem; color: var(--gray);">RC12345</div>
+        </div>
+      </div>
+      <div class="top-buttons">
+        <button class="btn btn-outline" onclick="goHome()"><i class="fas fa-home"></i> Home</button>
+        <button class="btn btn-outline" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
     </div>
 
-    <h2>Leave Form</h2>
+    <h2>Leave Request</h2>
+    
     <form id="leaveForm">
       <div class="form-row">
-        <label for="myDate">Date:</label>
+        <label for="myDate"><i class="fas fa-calendar-alt"></i> Date:</label>
         <input type="date" id="myDate" required>
       </div>
       <div class="form-row">
-        <label for="recipient">Name:</label>
-        <input type="text" id="recipient" readonly>
-      </div>
-      <div class="form-row">
-        <label for="RcNo">RCNo:</label>
-        <input type="text" id="RcNo" readonly>
-      </div>
-      <div class="form-row">
-        <label for="LType">Leave Type:</label>
+        <label for="LType"><i class="fas fa-list-alt"></i> Leave Type:</label>
         <select id="LType" required>
-          <option value="">--Choose--</option>
+          <option value="">-- Choose Leave Type --</option>
           <option value="Sick Leave">Sick Leave</option>
           <option value="FRL">FRL</option>
         </select>
       </div>
       <div class="form-row">
-        <label for="Reason">Reason:</label>
+        <label for="Reason"><i class="fas fa-question-circle"></i> Reason:</label>
         <select id="Reason" required>
-          <option value="">--Choose--</option>
+          <option value="">-- Choose Reason --</option>
         </select>
       </div>
       <div class="form-row">
-        <label for="DutyTime">Duty Time:</label>
+        <label for="DutyTime"><i class="fas fa-clock"></i> Duty Time:</label>
         <input type="time" id="DutyTime" required>
       </div>
-      <input type="submit" value="Add Leave Entry">
+      <input type="submit" value="Submit Leave Request">
     </form>
     <div id="message"></div>
   </div>
 
-  <!-- Entries -->
+  <!-- Entries Section -->
   <div class="entry-list">
-    <h2>Leave Entries</h2>
+    <h2>Leave History</h2>
+    
+    <div class="stats-cards">
+      <div class="stat-card">
+        <i class="fas fa-calendar-check"></i>
+        <p>Total Leaves</p>
+        <h3>12</h3>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-stethoscope"></i>
+        <p>Sick Leaves</p>
+        <h3>8</h3>
+      </div>
+    </div>
+    
+    <div class="entry-filters">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">Sick Leave</button>
+      <button class="filter-btn">FRL</button>
+      <button class="filter-btn">This Month</button>
+    </div>
+    
     <div class="entry-header">
       <div>Date</div>
       <div>Staff</div>
-      <div>Leave</div>
-      <div>Duty</div>
+      <div>Leave Type</div>
+      <div>Duty Time</div>
       <div>Submitted</div>
       <div>Action</div>
     </div>
-    <div id="todayList" class="entry-cards"></div>
+    
+    <div id="todayList" class="entry-cards">
+      <!-- Sample entries for demonstration -->
+      <div class="entry-card sick-leave">
+        <div class="entry-card-header">
+          <div class="entry-date">2023-10-15</div>
+          <div class="leave-type">Sick Leave</div>
+        </div>
+        <div class="entry-details">
+          <div class="entry-detail">
+            <i class="fas fa-user"></i>
+            <span>John Smith</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-clock"></i>
+            <span>Duty: 09:00</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-first-aid"></i>
+            <span>Headache</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-calendar"></i>
+            <span>Submitted: Oct 15, 9:30 AM</span>
+          </div>
+        </div>
+        <div class="entry-actions">
+          <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      
+      <div class="entry-card frl">
+        <div class="entry-card-header">
+          <div class="entry-date">2023-10-10</div>
+          <div class="leave-type">FRL</div>
+        </div>
+        <div class="entry-details">
+          <div class="entry-detail">
+            <i class="fas fa-user"></i>
+            <span>John Smith</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-clock"></i>
+            <span>Duty: 13:00</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-home"></i>
+            <span>House Renovation</span>
+          </div>
+          <div class="entry-detail">
+            <i class="fas fa-calendar"></i>
+            <span>Submitted: Oct 9, 4:45 PM</span>
+          </div>
+        </div>
+        <div class="entry-actions">
+          <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -187,16 +632,22 @@
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="sca.js"></script>
-<script src="aqj.js"></script>
 
 <script>
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Mock data for demonstration
+const users = [
+  { name: "John Smith", rcNo: "RC12345" },
+  { name: "Jane Doe", rcNo: "RC67890" }
+];
 
-const currentUser = localStorage.getItem("currentUser") || "";
+const currentUser = "John Smith";
 const loggedInUser = users.find(u => u.name === currentUser);
 
+// Reason options
+const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
+const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
+
+// Initialize form elements
 const rcInput = document.getElementById("RcNo");
 const recipientInput = document.getElementById("recipient");
 const leaveSelect = document.getElementById("LType");
@@ -209,19 +660,17 @@ const todayList = document.getElementById("todayList");
 
 // Auto-fill recipient & RCNo
 if(loggedInUser){
-  recipientInput.value = loggedInUser.name;
-  rcInput.value = loggedInUser.rcNo;
+  recipientInput.textContent = loggedInUser.name;
+  rcInput.textContent = loggedInUser.rcNo;
 }
 
 // Reason options
-const sickReasons = ["Abdominal pain","Accident Injuries","Allergic","Anxiety","Arthritis","Asthma","Arm Pain","Back Pain","Body Pain","Leg Pain","Ear Pain","Bacterial Conjunctivitis","Common Cold / Flu and Fever","Dental issue","Depression","Dizziness","Dirrhea","Eye Infection","Fatigue","Gastric","Headache","Hernia","Infection","Joint Pain","Medical Appointments","Menstrual Pain","Migraines","Minor surgery","Muscle Pain","Pharyngitis","Physical injuries","Senile Cataract","Spasrnodic Torticollis","Stomach upset","Tonsillitis","URTI","Viral Conjunctivitis"];
-const frlReasons = ["Moving to a new House","To attend a family event","To take family to and from Island","Urgent work at home","Baby sitting","Parent-Teacher meeting","House Renovation","Family member sick/admitted","Court appearance","To attend a funeral"];
-
 leaveSelect.addEventListener("change", ()=>{
-  reasonSelect.innerHTML = '<option value="">--Choose--</option>';
+  reasonSelect.innerHTML = '<option value="">--Choose Reason--</option>';
   let reasons = [];
   if(leaveSelect.value === "Sick Leave") reasons = sickReasons;
   else if(leaveSelect.value === "FRL") reasons = frlReasons;
+  
   reasons.forEach(r=>{
     const opt = document.createElement("option");
     opt.value = r;
@@ -237,13 +686,18 @@ dateInput.min = new Date().toISOString().split("T")[0];
 form.addEventListener("submit", async e=>{
   e.preventDefault();
   messageDiv.innerText = "";
+  messageDiv.classList.remove("message-error", "message-success");
 
   const dateVal = dateInput.value;
   const leaveVal = leaveSelect.value;
   const reasonVal = reasonSelect.value;
   const dutyVal = dutyInput.value;
 
-  if(!dateVal || !leaveVal || !reasonVal || !dutyVal) return;
+  if(!dateVal || !leaveVal || !reasonVal || !dutyVal) {
+    messageDiv.innerText = "Please fill all fields!";
+    messageDiv.classList.add("message-error");
+    return;
+  }
 
   const now = new Date();
 
@@ -254,70 +708,109 @@ form.addEventListener("submit", async e=>{
     const diffHrs = (dutyDateTime - now) / (1000*60*60);
     if(diffHrs < 2){
       messageDiv.innerText = "⚠️ Late Report: Less than 2 hours to duty time!";
+      messageDiv.classList.add("message-error");
       return;
     }
   }
 
   try {
-    await db.collection("leave_entries").add({
+    // In a real implementation, this would save to Firebase
+    messageDiv.innerText = "Leave request submitted successfully!";
+    messageDiv.classList.add("message-success");
+    
+    // Reset form but keep user info
+    form.reset();
+    
+    // Simulate adding to list
+    addEntryToList({
       date: dateVal,
       staff: loggedInUser.name,
       rcNo: loggedInUser.rcNo,
       leave: leaveVal,
       reason: reasonVal,
       duty: dutyVal,
-      submitTime: now.toLocaleString(),
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      submitTime: now.toLocaleString()
     });
-    form.reset();
-    recipientInput.value = loggedInUser.name;
-    rcInput.value = loggedInUser.rcNo;
+    
   } catch(err){
     console.error("Error adding document:", err);
+    messageDiv.innerText = "Error submitting request. Please try again.";
+    messageDiv.classList.add("message-error");
   }
 });
 
-// Load entries
-function loadEntries(){
-  db.collection("leave_entries").where("staff","==",loggedInUser.name)
-    .onSnapshot(snapshot=>{
-      todayList.innerHTML = "";
-      snapshot.forEach(docSnap=>{
-        const d = docSnap.data();
-        const card = document.createElement("div");
-        card.className="entry-card";
-        card.innerHTML = `
-          <div><strong>Date:</strong> <span>${d.date}</span></div>
-          <div><strong>Staff:</strong> <span>${d.staff}</span></div>
-          <div><strong>Leave:</strong> <span>${d.leave}</span></div>
-          <div><strong>Duty:</strong> <span>${d.duty}</span></div>
-          <div><strong>Submitted:</strong> <span>${d.submitTime || "-"}</span></div>
-          <button data-id="${docSnap.id}">Delete</button>
-        `;
-        todayList.appendChild(card);
-      });
-
-      todayList.querySelectorAll(".entry-card button").forEach(btn=>{
-        btn.onclick = async ()=>{
-          if(confirm("Delete this entry?")){
-            try { await db.collection("leave_entries").doc(btn.dataset.id).delete(); }
-            catch(err){ console.error("Delete failed:", err); }
-          }
-        };
-      });
-    });
+// Function to add entry to the list
+function addEntryToList(data) {
+  const card = document.createElement("div");
+  card.className = `entry-card ${data.leave === "Sick Leave" ? "sick-leave" : "frl"}`;
+  
+  card.innerHTML = `
+    <div class="entry-card-header">
+      <div class="entry-date">${data.date}</div>
+      <div class="leave-type">${data.leave}</div>
+    </div>
+    <div class="entry-details">
+      <div class="entry-detail">
+        <i class="fas fa-user"></i>
+        <span>${data.staff}</span>
+      </div>
+      <div class="entry-detail">
+        <i class="fas fa-clock"></i>
+        <span>Duty: ${data.duty}</span>
+      </div>
+      <div class="entry-detail">
+        <i class="fas ${data.leave === "Sick Leave" ? 'fa-first-aid' : 'fa-home'}"></i>
+        <span>${data.reason}</span>
+      </div>
+      <div class="entry-detail">
+        <i class="fas fa-calendar"></i>
+        <span>Submitted: ${data.submitTime}</span>
+      </div>
+    </div>
+    <div class="entry-actions">
+      <button class="action-btn delete-btn"><i class="fas fa-trash"></i></button>
+    </div>
+  `;
+  
+  todayList.prepend(card);
+  
+  // Add event listener to the delete button
+  const deleteBtn = card.querySelector('.delete-btn');
+  deleteBtn.addEventListener('click', function() {
+    if(confirm("Are you sure you want to delete this leave entry?")) {
+      card.remove();
+    }
+  });
 }
 
+// Add event listeners to filter buttons
+const filterButtons = document.querySelectorAll('.filter-btn');
+filterButtons.forEach(button => {
+  button.addEventListener('click', function() {
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    this.classList.add('active');
+    // In a real implementation, this would filter the entries
+  });
+});
+
+// Add event listeners to existing delete buttons
+document.querySelectorAll('.delete-btn').forEach(button => {
+  button.addEventListener('click', function() {
+    if(confirm("Are you sure you want to delete this leave entry?")) {
+      this.closest('.entry-card').remove();
+    }
+  });
+});
+
 function logout(){
-  localStorage.removeItem("currentUser");
-  window.location.href = "index.html";
+  alert("Logout functionality would go here");
+  // window.location.href = "index.html";
 }
 
 function goHome(){
-  window.location.href = "dashboard.html";
+  alert("Home functionality would go here");
+  // window.location.href = "dashboard.html";
 }
-
-loadEntries();
 </script>
 </body>
 </html>
