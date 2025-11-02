@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave Plan 2026 Submission</title>
+<style>
+  :root {
+    --primary-color: #2c5aa0;
+    --primary-dark: #1e3d72;
+    --primary-light: #4a7bc8;
+    --secondary-color: #d4af37;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #2d3748;
+    --text-light: #718096;
+    --border-color: #e2e8f0;
+    --success-color: #38a169;
+    --error-color: #e53e3e;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 5px 10px rgba(0, 0, 0, 0.02);
+    --radius: 10px;
+    --transition: all 0.3s ease;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-top: 20px;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+
+  .logo {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+  }
+
+  .logo-icon {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .header-text {
+    text-align: left;
+  }
+
+  h1 {
+    color: var(--primary-dark);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    letter-spacing: -0.5px;
+  }
+
+  .year-badge {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 5px;
+  }
+
+  .subtitle {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: var(--transition);
+  }
+
+  .card:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), 0 5px 15px rgba(0, 0, 0, 0.03);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .countdown {
+    text-align: center;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 60px 40px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .countdown h2 {
+    color: var(--primary-dark);
+    font-size: 2rem;
+    margin-bottom: 30px;
+    font-weight: 700;
+  }
+
+  .timer {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    font-family: 'Courier New', monospace;
+  }
+
+  .countdown-message {
+    color: var(--text-light);
+    font-size: 1.1rem;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .form-group {
+    margin-bottom: 25px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.95rem;
+  }
+
+  input[type="text"],
+  input[type="date"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: var(--transition);
+    background-color: #fafbfc;
+  }
+
+  input[type="text"]:focus,
+  input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+    background-color: white;
+  }
+
+  .periods-container {
+    margin-top: 30px;
+  }
+
+  .period-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .period-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .period-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+
+  .period {
+    background-color: var(--light-bg);
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .period:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+  }
+
+  .period-label {
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .period-number {
+    background-color: var(--primary-color);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 0.9rem;
+  }
+
+  .period-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .date-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .date-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .btn {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 16px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(44, 90, 160, 0.4);
+  }
+
+  .btn:active {
+    transform: translateY(0);
+  }
+
+  .btn-icon {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+
+  #message {
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: 600;
+    width: 100%;
+  }
+
+  .success {
+    background-color: rgba(56, 161, 105, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(56, 161, 105, 0.3);
+  }
+
+  .error {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--error-color);
+    border: 1px solid rgba(229, 62, 62, 0.3);
+  }
+
+  .reference-info {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    color: var(--text-light);
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    width: 100%;
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+  }
+
+  @media (max-width: 768px) {
+    .card {
+      padding: 25px;
+    }
+    
+    .countdown {
+      padding: 40px 25px;
+    }
+    
+    .timer {
+      font-size: 2.2rem;
+    }
+    
+    .period-dates {
+      grid-template-columns: 1fr;
+    }
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    .logo-container {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .logo {
+      margin-right: 0;
+      margin-bottom: 10px;
+    }
+    
+    .header-text {
+      text-align: center;
+    }
+    
+    .period-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .period-subtitle {
+      margin-top: 5px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body {
+      padding: 15px;
+    }
+    
+    .card {
+      padding: 20px;
+    }
+    
+    .countdown {
+      padding: 30px 20px;
+    }
+    
+    .timer {
+      font-size: 1.8rem;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <div class="logo">
+          <span class="logo-icon">LP</span>
+        </div>
+        <div class="header-text">
+          <h1>Leave Plan <span class="year-badge">2026</span></h1>
+          <p class="subtitle">Submit your planned leave periods for approval</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Countdown Section -->
+    <div id="countdownSection" class="countdown">
+      <h2>Leave Plan Opens In</h2>
+      <div id="timer" class="timer"></div>
+      <p class="countdown-message">The leave plan submission form will become available once the countdown reaches zero.</p>
+    </div>
+
+    <!-- Actual Form -->
+    <div id="formSection" class="card hidden">
+      <form id="leaveForm">
+        <div class="form-group">
+          <label for="staffName">Staff Name</label>
+          <input type="text" id="staffName" placeholder="Enter your full name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="rcNo">RC Number</label>
+          <input type="text" id="rcNo" placeholder="Enter your RC number" required>
+        </div>
+
+        <div class="periods-container">
+          <div class="period-header">
+            <div class="period-title">Leave Periods</div>
+            <div class="period-subtitle">Add up to 3 leave periods for 2026</div>
+          </div>
+
+          <div class="period">
+            <div class="period-label">
+              <span class="period-number">1</span>
+              Period 1
+            </div>
+            <div class="period-dates">
+              <div class="date-group">
+                <div class="date-label">From Date</div>
+                <input type="date" id="from1">
+              </div>
+              <div class="date-group">
+                <div class="date-label">To Date</div>
+                <input type="date" id="to1">
+              </div>
+            </div>
+          </div>
+
+          <div class="period">
+            <div class="period-label">
+              <span class="period-number">2</span>
+              Period 2
+            </div>
+            <div class="period-dates">
+              <div class="date-group">
+                <div class="date-label">From Date</div>
+                <input type="date" id="from2">
+              </div>
+              <div class="date-group">
+                <div class="date-label">To Date</div>
+                <input type="date" id="to2">
+              </div>
+            </div>
+          </div>
+
+          <div class="period">
+            <div class="period-label">
+              <span class="period-number">3</span>
+              Period 3
+            </div>
+            <div class="period-dates">
+              <div class="date-group">
+                <div class="date-label">From Date</div>
+                <input type="date" id="from3">
+              </div>
+              <div class="date-group">
+                <div class="date-label">To Date</div>
+                <input type="date" id="to3">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">
+          <span class="btn-icon">📤</span> Submit Leave Plan
+        </button>
+      </form>
+    </div>
+
+    <div id="message"></div>
+
+    <footer>
+      <p>© 2026 Company Name. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Configuration -->
+  <script src="fireleave.js"></script>
+  <script src="leave.js"></script>
+ 
+    
+</body>
+</html>
