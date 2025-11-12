@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Adjustment Viewer</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="fireatt.js"></script>
+  <script src="view.js" defer></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #6c757d;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      
+      /* Status Colors */
+      --pending-bg: #fff3cd;
+      --pending-text: #856404;
+      --applied-bg: #d1edff;
+      --applied-text: #0c5460;
+      
+      /* Reason Colors */
+      --sick-leave-bg: #ffe6e6;
+      --sick-leave-text: #8b0000;
+      --no-out-card-bg: #fff0cc;
+      --no-out-card-text: #8a6d00;
+      --duty-change-bg: #e6f7ff;
+      --duty-change-text: #0066cc;
+      --personal-bg: #f0e6ff;
+      --personal-text: #4b0082;
+      --training-bg: #e6ffe6;
+      --training-text: #006600;
+      
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --radius: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      color: #333;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 20px;
+      font-size: 14px; /* Smaller font size */
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 15px;
+    }
+
+    h1 {
+      color: var(--primary);
+      font-size: 2rem; /* Smaller heading */
+      font-weight: 700;
+      margin-bottom: 8px;
+      position: relative;
+      display: inline-block;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .subtitle {
+      color: var(--secondary);
+      font-size: 0.95rem; /* Smaller subtitle */
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 15px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .stat-value {
+      font-size: 2rem; /* Smaller stat value */
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: var(--secondary);
+      font-size: 0.8rem; /* Smaller label */
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .total-requests .stat-value {
+      color: var(--primary);
+    }
+
+    .pending-requests .stat-value {
+      color: var(--warning);
+    }
+
+    .applied-requests .stat-value {
+      color: var(--success);
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 25px;
+    }
+
+    .card-header {
+      background: var(--primary);
+      color: white;
+      padding: 14px 18px;
+      font-weight: 600;
+      font-size: 1.1rem; /* Smaller header */
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    .filter-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem; /* Smaller label */
+    }
+
+    input, select, button {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: var(--radius);
+      font-size: 0.85rem; /* Smaller input text */
+      transition: all 0.3s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+      border: none;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      font-size: 0.85rem; /* Smaller table font */
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      position: relative;
+      font-size: 0.9rem; /* Slightly larger header */
+    }
+
+    th::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 4px solid rgba(255, 255, 255, 0.7);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem; /* Smaller badge */
+      font-weight: 600;
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .status-pending {
+      background: var(--pending-bg);
+      color: var(--pending-text);
+    }
+
+    .status-applied {
+      background: var(--applied-bg);
+      color: var(--applied-text);
+    }
+
+    /* Reason Badge Styles */
+    .reason-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem; /* Smaller badge */
+      font-weight: 600;
+    }
+
+    .reason-sick-leave {
+      background: var(--sick-leave-bg);
+      color: var(--sick-leave-text);
+    }
+
+    .reason-no-out-card {
+      background: var(--no-out-card-bg);
+      color: var(--no-out-card-text);
+    }
+
+    .reason-duty-change {
+      background: var(--duty-change-bg);
+      color: var(--duty-change-text);
+    }
+
+    .reason-personal {
+      background: var(--personal-bg);
+      color: var(--personal-text);
+    }
+
+    .reason-training {
+      background: var(--training-bg);
+      color: var(--training-text);
+    }
+
+    .reason-other {
+      background: #f0f0f0;
+      color: #555;
+    }
+
+    .action-btn {
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 0.8rem; /* Smaller button */
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .action-apply {
+      background: var(--success);
+      color: white;
+    }
+
+    .action-apply:hover {
+      background: #218838;
+    }
+
+    .action-delete {
+      background: var(--danger);
+      color: white;
+    }
+
+    .action-delete:hover {
+      background: #c82333;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px 15px;
+      color: var(--secondary);
+    }
+
+    .empty-state i {
+      font-size: 2.5rem; /* Smaller icon */
+      margin-bottom: 12px;
+      color: #dee2e6;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding: 15px;
+      color: var(--secondary);
+      font-size: 0.8rem; /* Smaller footer */
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      
+      .filter-box {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      h1 {
+        font-size: 1.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Attendance Adjustment Records</h1>
+      <p class="subtitle">View and manage all attendance adjustment requests</p>
+    </header>
+
+    
+
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-filter"></i> Filter Records
+      </div>
+      <div class="card-body">
+        <div class="filter-box">
+          <div class="filter-group">
+            <label for="filterDate"><i class="fas fa-calendar-alt"></i> Date</label>
+            <input type="date" id="filterDate">
+          </div>
+          <div class="filter-group">
+            <label for="filterName"><i class="fas fa-user"></i> Name</label>
+            <input type="text" id="filterName" placeholder="Filter by name">
+          </div>
+          <div class="filter-group">
+            <label for="filterRC"><i class="fas fa-id-card"></i> RC No</label>
+            <input type="text" id="filterRC" placeholder="Filter by RC No">
+          </div>
+          <div class="filter-group">
+            <label for="filterStatus"><i class="fas fa-tag"></i> Status</label>
+            <select id="filterStatus">
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Applied">Applied</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterReason"><i class="fas fa-sticky-note"></i> Reason</label>
+            <select id="filterReason">
+              <option value="">All Reasons</option>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="No Out Card">No Out Card</option>
+              <option value="Duty Change">Duty Change</option>
+              <option value="Personal Leave">Personal Leave</option>
+              <option value="Training">Training</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button id="btnFilter" class="btn-primary">
+            <i class="fas fa-search"></i> Apply Filters
+          </button>
+          <button id="btnReset" class="btn-secondary">
+            <i class="fas fa-redo"></i> Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-table"></i> Adjustment Records
+        <span id="recordCount" style="font-size: 0.8rem; margin-left: auto;">(0 records)</span>
+      </div>
+      <div class="card-body">
+        <table id="adjustmentTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>RC No</th>
+              <th>Date</th>
+              <th>Reason</th>
+              <th>Remarks</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="adjustmentBody">
+            <!-- Data will be populated here -->
+            <tr>
+              <td colspan="7" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No adjustment records found</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <p>Attendance Management System &copy; 2023</p>
+    </footer>
+  </div>
+
+  <script>
+    // Sample data for demonstration with different reasons
+    const sampleData = [
+      { name: "John Doe", rcno: "RC001", date: "2023-10-15", reason: "Sick Leave", remarks: "Fever and cold", status: "Pending" },
+      { name: "Jane Smith", rcno: "RC002", date: "2023-10-16", reason: "No Out Card", remarks: "Forgot to punch out", status: "Applied" },
+      { name: "Robert Johnson", rcno: "RC003", date: "2023-10-17", reason: "Duty Change", remarks: "Shift changed to night", status: "Pending" },
+      { name: "Emily Davis", rcno: "RC004", date: "2023-10-18", reason: "Training", remarks: "External training session", status: "Applied" },
+      { name: "Michael Wilson", rcno: "RC005", date: "2023-10-19", reason: "Personal Leave", remarks: "Family function", status: "Pending" },
+      { name: "Sarah Brown", rcno: "RC006", date: "2023-10-20", reason: "Sick Leave", remarks: "Dental appointment", status: "Applied" },
+      { name: "David Miller", rcno: "RC007", date: "2023-10-21", reason: "No Out Card", remarks: "System error", status: "Pending" },
+      { name: "Lisa Taylor", rcno: "RC008", date: "2023-10-22", reason: "Duty Change", remarks: "Emergency coverage", status: "Applied" }
+    ];
+
+    // DOM elements
+    const filterDate = document.getElementById('filterDate');
+    const filterName = document.getElementById('filterName');
+    const filterRC = document.getElementById('filterRC');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterReason = document.getElementById('filterReason');
+    const btnFilter = document.getElementById('btnFilter');
+    const btnReset = document.getElementById('btnReset');
+    const adjustmentBody = document.getElementById('adjustmentBody');
+    const recordCount = document.getElementById('recordCount');
+    const totalRequests = document.getElementById('totalRequests');
+    const pendingRequests = document.getElementById('pendingRequests');
+    const appliedRequests = document.getElementById('appliedRequests');
+
+    // Initialize with sample data
+    let records = [...sampleData];
+    let filteredRecords = [...records];
+
+    // Apply filters
+    btnFilter.addEventListener('click', function() {
+      const dateFilter = filterDate.value;
+      const nameFilter = filterName.value.toLowerCase();
+      const rcFilter = filterRC.value.toLowerCase();
+      const statusFilter = filterStatus.value;
+      const reasonFilter = filterReason.value;
+
+      filteredRecords = records.filter(record => {
+        return (
+          (dateFilter === '' || record.date === dateFilter) &&
+          (nameFilter === '' || record.name.toLowerCase().includes(nameFilter)) &&
+          (rcFilter === '' || record.rcno.toLowerCase().includes(rcFilter)) &&
+          (statusFilter === '' || record.status === statusFilter) &&
+          (reasonFilter === '' || record.reason === reasonFilter)
+        );
+      });
+
+      renderTable();
+    });
+
+    // Reset filters
+    btnReset.addEventListener('click', function() {
+      filterDate.value = '';
+      filterName.value = '';
+      filterRC.value = '';
+      filterStatus.value = '';
+      filterReason.value = '';
+      filteredRecords = [...records];
+      renderTable();
+    });
+
+    // Get reason badge class
+    function getReasonClass(reason) {
+      switch(reason) {
+        case 'Sick Leave': return 'reason-sick-leave';
+        case 'No Out Card': return 'reason-no-out-card';
+        case 'Duty Change': return 'reason-duty-change';
+        case 'Personal Leave': return 'reason-personal';
+        case 'Training': return 'reason-training';
+        default: return 'reason-other';
+      }
+    }
+
+    // Render table with data
+    function renderTable() {
+      adjustmentBody.innerHTML = '';
+      recordCount.textContent = `(${filteredRecords.length} records)`;
+
+      if (filteredRecords.length === 0) {
+        adjustmentBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No adjustment records found</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filteredRecords.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${record.name}</td>
+          <td>${record.rcno}</td>
+          <td>${record.date}</td>
+          <td>
+            <span class="reason-badge ${getReasonClass(record.reason)}">
+              ${record.reason}
+            </span>
+          </td>
+          <td>${record.remarks}</td>
+          <td>
+            <span class="status-badge status-${record.status.toLowerCase()}">
+              ${record.status}
+            </span>
+          </td>
+          <td>
+            ${record.status === 'Pending' ? 
+              `<button class="action-btn action-apply" data-index="${index}">
+                <i class="fas fa-check"></i> Apply
+              </button>` : ''}
+            <button class="action-btn action-delete" data-index="${index}">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </td>
+        `;
+        adjustmentBody.appendChild(row);
+      });
+
+      // Add event listeners to action buttons
+      document.querySelectorAll('.action-apply').forEach(button => {
+        button.addEventListener('click', function() {
+          const index = parseInt(this.getAttribute('data-index'));
+          markAsApplied(index);
+        });
+      });
+
+      document.querySelectorAll('.action-delete').forEach(button => {
+        button.addEventListener('click', function() {
+          const index = parseInt(this.getAttribute('data-index'));
+          deleteRecord(index);
+        });
+      });
+    }
+
+    // Mark record as applied
+    function markAsApplied(index) {
+      if (confirm('Are you sure you want to mark this request as applied?')) {
+        filteredRecords[index].status = 'Applied';
+        
+        // Update the main records array as well
+        const record = filteredRecords[index];
+        const mainIndex = records.findIndex(r => 
+          r.name === record.name && 
+          r.rcno === record.rcno && 
+          r.date === record.date
+        );
+        
+        if (mainIndex !== -1) {
+          records[mainIndex].status = 'Applied';
+        }
+        
+        updateStats();
+        renderTable();
+      }
+    }
+
+    // Delete record
+    function deleteRecord(index) {
+      if (confirm('Are you sure you want to delete this record?')) {
+        const record = filteredRecords[index];
+        
+        // Remove from both arrays
+        filteredRecords.splice(index, 1);
+        const mainIndex = records.findIndex(r => 
+          r.name === record.name && 
+          r.rcno === record.rcno && 
+          r.date === record.date
+        );
+        
+        if (mainIndex !== -1) {
+          records.splice(mainIndex, 1);
+        }
+        
+        updateStats();
+        renderTable();
+      }
+    }
+
+    // Update statistics
+    function updateStats() {
+      totalRequests.textContent = records.length;
+      pendingRequests.textContent = records.filter(r => r.status === 'Pending').length;
+      appliedRequests.textContent = records.filter(r => r.status === 'Applied').length;
+    }
+
+    // Initialize the application
+    function init() {
+      updateStats();
+      renderTable();
+    }
+
+    // Start the application
+    init();
+  </script>
+</body>
+</html>
