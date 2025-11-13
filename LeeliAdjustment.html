@@ -24,6 +24,10 @@
       --pending-text: #856404;
       --applied-bg: #d1edff;
       --applied-text: #0c5460;
+      --sent-hr-bg: #e6f7ff;
+      --sent-hr-text: #0066cc;
+      --action-required-bg: #ffe6e6;
+      --action-required-text: #8b0000;
       
       /* Reason Colors */
       --sick-leave-bg: #ffe6e6;
@@ -54,7 +58,7 @@
       line-height: 1.5;
       min-height: 100vh;
       padding: 20px;
-      font-size: 14px; /* Smaller font size */
+      font-size: 14px;
     }
 
     .container {
@@ -70,7 +74,7 @@
 
     h1 {
       color: var(--primary);
-      font-size: 2rem; /* Smaller heading */
+      font-size: 2rem;
       font-weight: 700;
       margin-bottom: 8px;
       position: relative;
@@ -91,14 +95,14 @@
 
     .subtitle {
       color: var(--secondary);
-      font-size: 0.95rem; /* Smaller subtitle */
+      font-size: 0.95rem;
       max-width: 600px;
       margin: 0 auto;
     }
 
     .dashboard {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 15px;
       margin-bottom: 25px;
     }
@@ -117,14 +121,14 @@
     }
 
     .stat-value {
-      font-size: 2rem; /* Smaller stat value */
+      font-size: 2rem;
       font-weight: 700;
       margin-bottom: 5px;
     }
 
     .stat-label {
       color: var(--secondary);
-      font-size: 0.8rem; /* Smaller label */
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -141,6 +145,10 @@
       color: var(--success);
     }
 
+    .sent-hr-requests .stat-value {
+      color: var(--sent-hr-text);
+    }
+
     .card {
       background: white;
       border-radius: var(--radius);
@@ -154,7 +162,7 @@
       color: white;
       padding: 14px 18px;
       font-weight: 600;
-      font-size: 1.1rem; /* Smaller header */
+      font-size: 1.1rem;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -183,21 +191,27 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 0.85rem; /* Smaller label */
+      font-size: 0.85rem;
     }
 
-    input, select, button {
+    input, select, button, textarea {
       padding: 10px 12px;
       border: 1px solid #ddd;
       border-radius: var(--radius);
-      font-size: 0.85rem; /* Smaller input text */
+      font-size: 0.85rem;
       transition: all 0.3s;
+      font-family: inherit;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
     }
 
     .btn-group {
@@ -245,7 +259,7 @@
       border-radius: var(--radius);
       overflow: hidden;
       box-shadow: var(--shadow);
-      font-size: 0.85rem; /* Smaller table font */
+      font-size: 0.85rem;
     }
 
     th, td {
@@ -259,7 +273,7 @@
       color: white;
       font-weight: 600;
       position: relative;
-      font-size: 0.9rem; /* Slightly larger header */
+      font-size: 0.9rem;
     }
 
     th::after {
@@ -287,7 +301,7 @@
       display: inline-block;
       padding: 5px 10px;
       border-radius: 20px;
-      font-size: 0.8rem; /* Smaller badge */
+      font-size: 0.8rem;
       font-weight: 600;
       text-align: center;
       min-width: 70px;
@@ -303,12 +317,22 @@
       color: var(--applied-text);
     }
 
+    .status-sent-hr {
+      background: var(--sent-hr-bg);
+      color: var(--sent-hr-text);
+    }
+
+    .status-action-required {
+      background: var(--action-required-bg);
+      color: var(--action-required-text);
+    }
+
     /* Reason Badge Styles */
     .reason-badge {
       display: inline-block;
       padding: 5px 10px;
       border-radius: 4px;
-      font-size: 0.8rem; /* Smaller badge */
+      font-size: 0.8rem;
       font-weight: 600;
     }
 
@@ -345,7 +369,7 @@
     .action-btn {
       padding: 6px 10px;
       border-radius: var(--radius);
-      font-size: 0.8rem; /* Smaller button */
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
@@ -364,13 +388,28 @@
       background: #218838;
     }
 
-    .action-delete {
-      background: var(--danger);
+    .action-send-hr {
+      background: var(--warning);
       color: white;
     }
 
-    .action-delete:hover {
-      background: #c82333;
+    .action-send-hr:hover {
+      background: #e0a800;
+    }
+
+    .action-sent-hr {
+      background: var(--sent-hr-bg);
+      color: var(--sent-hr-text);
+      border: 1px solid var(--sent-hr-text);
+    }
+
+    .action-comment {
+      background: var(--secondary);
+      color: white;
+    }
+
+    .action-comment:hover {
+      background: #5a6268;
     }
 
     .empty-state {
@@ -380,7 +419,7 @@
     }
 
     .empty-state i {
-      font-size: 2.5rem; /* Smaller icon */
+      font-size: 2.5rem;
       margin-bottom: 12px;
       color: #dee2e6;
     }
@@ -390,13 +429,95 @@
       margin-top: 30px;
       padding: 15px;
       color: var(--secondary);
-      font-size: 0.8rem; /* Smaller footer */
+      font-size: 0.8rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 15px 20px;
+      background: #f8f9fa;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .comments-history {
+      margin-top: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+
+    .comments-history h4 {
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+
+    .comment-item {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    .comment-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .comment-date {
+      font-size: 0.7rem;
+      color: var(--secondary);
+      margin-top: 5px;
     }
 
     /* Responsive adjustments */
     @media (max-width: 992px) {
       .dashboard {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .filter-box {
@@ -413,6 +534,10 @@
       h1 {
         font-size: 1.7rem;
       }
+      
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -423,7 +548,24 @@
       <p class="subtitle">View and manage all attendance adjustment requests</p>
     </header>
 
-    
+    <div class="dashboard">
+      <div class="stat-card total-requests">
+        <div class="stat-value" id="totalRequests">0</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+      <div class="stat-card pending-requests">
+        <div class="stat-value" id="pendingRequests">0</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+      <div class="stat-card sent-hr-requests">
+        <div class="stat-value" id="sentHrRequests">0</div>
+        <div class="stat-label">Sent to HR</div>
+      </div>
+      <div class="stat-card applied-requests">
+        <div class="stat-value" id="appliedRequests">0</div>
+        <div class="stat-label">Applied Requests</div>
+      </div>
+    </div>
 
     <div class="card">
       <div class="card-header">
@@ -437,7 +579,7 @@
           </div>
           <div class="filter-group">
             <label for="filterName"><i class="fas fa-user"></i> Name</label>
-            <input type="text" id="filterName" placeholder="Filter by name">
+            <input type="text" id="filterName" placeholder="Filter by name (partial match)">
           </div>
           <div class="filter-group">
             <label for="filterRC"><i class="fas fa-id-card"></i> RC No</label>
@@ -448,7 +590,9 @@
             <select id="filterStatus">
               <option value="">All Statuses</option>
               <option value="Pending">Pending</option>
+              <option value="Sent to HR">Sent to HR</option>
               <option value="Applied">Applied</option>
+              <option value="Action Required">Action Required</option>
             </select>
           </div>
           <div class="filter-group">
@@ -511,17 +655,87 @@
     </footer>
   </div>
 
+  <!-- Modal for adding user comments -->
+  <div class="modal" id="commentModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add User Comment</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="filter-group">
+          <label for="commentText">Your Comment</label>
+          <textarea id="commentText" placeholder="Enter your comment here (e.g., MC needed, Additional documents required, etc.)"></textarea>
+        </div>
+        <div class="comments-history" id="commentHistory">
+          <h4>Comment History</h4>
+          <!-- Previous comments will be displayed here -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelComment">Cancel</button>
+        <button class="btn-primary" id="saveComment">Save Comment</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Sample data for demonstration with different reasons
     const sampleData = [
-      { name: "John Doe", rcno: "RC001", date: "2023-10-15", reason: "Sick Leave", remarks: "Fever and cold", status: "Pending" },
-      { name: "Jane Smith", rcno: "RC002", date: "2023-10-16", reason: "No Out Card", remarks: "Forgot to punch out", status: "Applied" },
-      { name: "Robert Johnson", rcno: "RC003", date: "2023-10-17", reason: "Duty Change", remarks: "Shift changed to night", status: "Pending" },
-      { name: "Emily Davis", rcno: "RC004", date: "2023-10-18", reason: "Training", remarks: "External training session", status: "Applied" },
-      { name: "Michael Wilson", rcno: "RC005", date: "2023-10-19", reason: "Personal Leave", remarks: "Family function", status: "Pending" },
-      { name: "Sarah Brown", rcno: "RC006", date: "2023-10-20", reason: "Sick Leave", remarks: "Dental appointment", status: "Applied" },
-      { name: "David Miller", rcno: "RC007", date: "2023-10-21", reason: "No Out Card", remarks: "System error", status: "Pending" },
-      { name: "Lisa Taylor", rcno: "RC008", date: "2023-10-22", reason: "Duty Change", remarks: "Emergency coverage", status: "Applied" }
+      { 
+        name: "John Doe", 
+        rcno: "RC001", 
+        date: "2023-10-15", 
+        reason: "Sick Leave", 
+        remarks: "Fever and cold", 
+        status: "Pending",
+        userComments: []
+      },
+      { 
+        name: "Jane Smith", 
+        rcno: "RC002", 
+        date: "2023-10-16", 
+        reason: "No Out Card", 
+        remarks: "Forgot to punch out", 
+        status: "Pending",
+        userComments: []
+      },
+      { 
+        name: "Robert Johnson", 
+        rcno: "RC003", 
+        date: "2023-10-17", 
+        reason: "Duty Change", 
+        remarks: "Shift changed to night", 
+        status: "Pending",
+        userComments: []
+      },
+      { 
+        name: "Emily Davis", 
+        rcno: "RC004", 
+        date: "2023-10-18", 
+        reason: "Training", 
+        remarks: "External training session", 
+        status: "Pending",
+        userComments: []
+      },
+      { 
+        name: "Michael Wilson", 
+        rcno: "RC005", 
+        date: "2023-10-19", 
+        reason: "Personal Leave", 
+        remarks: "Family function", 
+        status: "Pending",
+        userComments: []
+      },
+      { 
+        name: "Sarah Brown", 
+        rcno: "RC006", 
+        date: "2023-10-20", 
+        reason: "Sick Leave", 
+        remarks: "Dental appointment", 
+        status: "Pending",
+        userComments: []
+      }
     ];
 
     // DOM elements
@@ -537,10 +751,20 @@
     const totalRequests = document.getElementById('totalRequests');
     const pendingRequests = document.getElementById('pendingRequests');
     const appliedRequests = document.getElementById('appliedRequests');
+    const sentHrRequests = document.getElementById('sentHrRequests');
+    
+    // Modal elements
+    const commentModal = document.getElementById('commentModal');
+    const commentText = document.getElementById('commentText');
+    const commentHistory = document.getElementById('commentHistory');
+    const saveComment = document.getElementById('saveComment');
+    const cancelComment = document.getElementById('cancelComment');
+    const closeModal = document.querySelector('.close-modal');
 
     // Initialize with sample data
     let records = [...sampleData];
     let filteredRecords = [...records];
+    let currentCommentIndex = -1;
 
     // Apply filters
     btnFilter.addEventListener('click', function() {
@@ -586,6 +810,17 @@
       }
     }
 
+    // Get status badge class
+    function getStatusClass(status) {
+      switch(status) {
+        case 'Pending': return 'status-pending';
+        case 'Applied': return 'status-applied';
+        case 'Sent to HR': return 'status-sent-hr';
+        case 'Action Required': return 'status-action-required';
+        default: return 'status-pending';
+      }
+    }
+
     // Render table with data
     function renderTable() {
       adjustmentBody.innerHTML = '';
@@ -605,6 +840,45 @@
 
       filteredRecords.forEach((record, index) => {
         const row = document.createElement('tr');
+        
+        // Determine which buttons to show based on status
+        let actionButtons = '';
+        
+        if (record.status === 'Pending') {
+          actionButtons = `
+            <button class="action-btn action-apply" data-index="${index}">
+              <i class="fas fa-check"></i> Apply
+            </button>
+            <button class="action-btn action-send-hr" data-index="${index}">
+              <i class="fas fa-paper-plane"></i> Send to HR
+            </button>
+          `;
+        } else if (record.status === 'Applied') {
+          actionButtons = `
+            <button class="action-btn action-apply" data-index="${index}" style="opacity: 0.6; cursor: not-allowed;">
+              <i class="fas fa-check"></i> Applied
+            </button>
+          `;
+        } else if (record.status === 'Sent to HR') {
+          actionButtons = `
+            <button class="action-btn action-apply" data-index="${index}">
+              <i class="fas fa-check"></i> Apply
+            </button>
+            <button class="action-btn action-sent-hr" data-index="${index}">
+              <i class="fas fa-paper-plane"></i> Sent to HR
+            </button>
+          `;
+        } else if (record.status === 'Action Required') {
+          actionButtons = `
+            <button class="action-btn action-apply" data-index="${index}">
+              <i class="fas fa-check"></i> Apply
+            </button>
+            <button class="action-btn action-send-hr" data-index="${index}">
+              <i class="fas fa-paper-plane"></i> Send to HR
+            </button>
+          `;
+        }
+        
         row.innerHTML = `
           <td>${record.name}</td>
           <td>${record.rcno}</td>
@@ -616,18 +890,17 @@
           </td>
           <td>${record.remarks}</td>
           <td>
-            <span class="status-badge status-${record.status.toLowerCase()}">
+            <span class="status-badge ${getStatusClass(record.status)}">
               ${record.status}
             </span>
           </td>
           <td>
-            ${record.status === 'Pending' ? 
-              `<button class="action-btn action-apply" data-index="${index}">
-                <i class="fas fa-check"></i> Apply
-              </button>` : ''}
-            <button class="action-btn action-delete" data-index="${index}">
-              <i class="fas fa-trash"></i> Delete
-            </button>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+              ${actionButtons}
+              <button class="action-btn action-comment" data-index="${index}">
+                <i class="fas fa-comment"></i> Comment
+              </button>
+            </div>
           </td>
         `;
         adjustmentBody.appendChild(row);
@@ -635,19 +908,135 @@
 
       // Add event listeners to action buttons
       document.querySelectorAll('.action-apply').forEach(button => {
+        if (!button.style.opacity) { // Only add listener if not disabled
+          button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            markAsApplied(index);
+          });
+        }
+      });
+
+      document.querySelectorAll('.action-send-hr').forEach(button => {
         button.addEventListener('click', function() {
           const index = parseInt(this.getAttribute('data-index'));
-          markAsApplied(index);
+          sendToHR(index);
         });
       });
 
-      document.querySelectorAll('.action-delete').forEach(button => {
+      document.querySelectorAll('.action-comment').forEach(button => {
         button.addEventListener('click', function() {
           const index = parseInt(this.getAttribute('data-index'));
-          deleteRecord(index);
+          openCommentModal(index);
         });
       });
     }
+
+    // Open comment modal
+    function openCommentModal(index) {
+      currentCommentIndex = index;
+      const record = filteredRecords[index];
+      
+      // Clear comment text
+      commentText.value = '';
+      
+      // Display comment history
+      displayCommentHistory(record);
+      
+      commentModal.style.display = 'flex';
+    }
+
+    // Display comment history
+    function displayCommentHistory(record) {
+      commentHistory.innerHTML = '<h4>Comment History</h4>';
+      
+      if (!record.userComments || record.userComments.length === 0) {
+        commentHistory.innerHTML += '<p>No comments yet.</p>';
+        return;
+      }
+      
+      record.userComments.forEach(comment => {
+        const commentItem = document.createElement('div');
+        commentItem.className = 'comment-item';
+        commentItem.innerHTML = `
+          <div><strong>${comment.user || 'User'}:</strong> ${comment.text}</div>
+          <div class="comment-date">${new Date(comment.timestamp).toLocaleString()}</div>
+        `;
+        commentHistory.appendChild(commentItem);
+      });
+    }
+
+    // Close comment modal
+    function closeCommentModal() {
+      commentModal.style.display = 'none';
+      currentCommentIndex = -1;
+    }
+
+    // Save comment
+    saveComment.addEventListener('click', function() {
+      if (currentCommentIndex !== -1) {
+        const newComment = commentText.value.trim();
+        
+        if (newComment) {
+          const record = filteredRecords[currentCommentIndex];
+          const timestamp = new Date().toISOString();
+          
+          // Initialize userComments array if it doesn't exist
+          if (!record.userComments) {
+            record.userComments = [];
+          }
+          
+          // Add new comment
+          record.userComments.push({
+            text: newComment,
+            timestamp: timestamp,
+            user: "Current User" // In real app, this would be the logged in user
+          });
+          
+          // Update the main records array as well
+          const mainIndex = records.findIndex(r => 
+            r.name === record.name && 
+            r.rcno === record.rcno && 
+            r.date === record.date
+          );
+          
+          if (mainIndex !== -1) {
+            records[mainIndex].userComments = record.userComments;
+            
+            // Update in Firebase if connected
+            if (typeof db !== 'undefined' && db) {
+              updateRecordInFirebase(record.id, {
+                userComments: record.userComments
+              });
+            }
+          }
+          
+          // If comment contains keywords, update status
+          if (newComment.toLowerCase().includes('mc needed') || 
+              newComment.toLowerCase().includes('document') ||
+              newComment.toLowerCase().includes('action required')) {
+            record.status = 'Action Required';
+            if (mainIndex !== -1) {
+              records[mainIndex].status = 'Action Required';
+              if (typeof db !== 'undefined' && db) {
+                updateRecordInFirebase(record.id, {
+                  status: 'Action Required'
+                });
+              }
+            }
+          }
+          
+          updateStats();
+          renderTable();
+          closeCommentModal();
+        } else {
+          alert('Please enter a comment before saving.');
+        }
+      }
+    });
+
+    // Cancel comment
+    cancelComment.addEventListener('click', closeCommentModal);
+    closeModal.addEventListener('click', closeCommentModal);
 
     // Mark record as applied
     function markAsApplied(index) {
@@ -664,6 +1053,13 @@
         
         if (mainIndex !== -1) {
           records[mainIndex].status = 'Applied';
+          
+          // Update in Firebase if connected
+          if (typeof db !== 'undefined' && db) {
+            updateRecordInFirebase(record.id, {
+              status: 'Applied'
+            });
+          }
         }
         
         updateStats();
@@ -671,13 +1067,13 @@
       }
     }
 
-    // Delete record
-    function deleteRecord(index) {
-      if (confirm('Are you sure you want to delete this record?')) {
-        const record = filteredRecords[index];
+    // Send to HR
+    function sendToHR(index) {
+      if (confirm('Are you sure you want to send this request to HR for processing?')) {
+        filteredRecords[index].status = 'Sent to HR';
         
-        // Remove from both arrays
-        filteredRecords.splice(index, 1);
+        // Update the main records array as well
+        const record = filteredRecords[index];
         const mainIndex = records.findIndex(r => 
           r.name === record.name && 
           r.rcno === record.rcno && 
@@ -685,7 +1081,14 @@
         );
         
         if (mainIndex !== -1) {
-          records.splice(mainIndex, 1);
+          records[mainIndex].status = 'Sent to HR';
+          
+          // Update in Firebase if connected
+          if (typeof db !== 'undefined' && db) {
+            updateRecordInFirebase(record.id, {
+              status: 'Sent to HR'
+            });
+          }
         }
         
         updateStats();
@@ -693,10 +1096,24 @@
       }
     }
 
+    // Update record in Firebase
+    function updateRecordInFirebase(id, updates) {
+      if (typeof db !== 'undefined' && db) {
+        db.collection('attendanceAdjustments').doc(id).update(updates)
+          .then(() => {
+            console.log('Record updated successfully in Firebase');
+          })
+          .catch((error) => {
+            console.error('Error updating record in Firebase: ', error);
+          });
+      }
+    }
+
     // Update statistics
     function updateStats() {
       totalRequests.textContent = records.length;
       pendingRequests.textContent = records.filter(r => r.status === 'Pending').length;
+      sentHrRequests.textContent = records.filter(r => r.status === 'Sent to HR').length;
       appliedRequests.textContent = records.filter(r => r.status === 'Applied').length;
     }
 
