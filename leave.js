@@ -1,5 +1,5 @@
 // ===================== TIMER LOGIC =====================
-    const activationDate = new Date("2025-11-15T15:30:00+05:00"); // Maldives time
+    const activationDate = new Date("2025-12-01T07:30:00+05:00"); // Maldives time
     const countdownSection = document.getElementById("countdownSection");
     const formSection = document.getElementById("formSection");
     const timerDisplay = document.getElementById("timer");
@@ -119,4 +119,5 @@
     document.getElementById('rcNo').addEventListener('input', function(e) {
       this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
     });
+
 
