@@ -824,23 +824,33 @@
   </div>
 
   <script>
-    // Firebase will be initialized from fireatt.js - REMOVED DUPLICATE CONFIG
+    // Use the Firebase instance from your fireatt.js file
     let db = null;
     let firebaseInitialized = false;
 
-    // Initialize Firebase with better error handling
+    // Initialize Firebase with your specific setup
     function initializeFirebase() {
       try {
-        // Check if Firebase is already initialized from fireatt.js
-        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-          db = firebase.firestore();
+        // Check if cardDb is available from fireatt.js
+        if (typeof cardDb !== 'undefined' && cardDb) {
+          db = cardDb;
           firebaseInitialized = true;
-          console.log('Firebase initialized successfully from fireatt.js');
+          console.log('Firebase initialized successfully from cardDb');
           return true;
         }
         
-        // If fireatt.js didn't initialize Firebase, we'll use local data
-        console.log('Firebase not initialized in fireatt.js, using local data');
+        // If cardDb is not available, try to access the cardApp directly
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+          const cardApp = firebase.app('cardApp');
+          if (cardApp) {
+            db = cardApp.firestore();
+            firebaseInitialized = true;
+            console.log('Firebase initialized from cardApp');
+            return true;
+          }
+        }
+        
+        console.log('Firebase not available, using local data');
         return false;
         
       } catch (error) {
@@ -927,7 +937,7 @@
     async function init() {
       setupEventListeners();
       
-      // Initialize Firebase
+      // Initialize Firebase with your specific setup
       firebaseInitialized = initializeFirebase();
       
       if (firebaseInitialized && db) {
@@ -1074,6 +1084,9 @@
         console.error('Error updating record in Firebase:', error);
       }
     }
+
+    // [Rest of the functions remain exactly the same...]
+    // Setup event listeners, notification system, filter functions, render functions, etc.
 
     // Setup event listeners
     function setupEventListeners() {
