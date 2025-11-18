@@ -8,6 +8,7 @@
   <script src="fireatt.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* All your CSS styles remain exactly the same */
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -823,41 +824,24 @@
   </div>
 
   <script>
-    // Firebase Configuration - Fallback if fireatt.js doesn't work
-    const firebaseConfig = {
-      // Add your Firebase config here if fireatt.js fails
-      // apiKey: "your-api-key",
-      // authDomain: "your-project.firebaseapp.com",
-      // projectId: "your-project-id",
-      // storageBucket: "your-project.appspot.com",
-      // messagingSenderId: "your-sender-id",
-      // appId: "your-app-id"
-    };
-
+    // Firebase will be initialized from fireatt.js - REMOVED DUPLICATE CONFIG
     let db = null;
     let firebaseInitialized = false;
 
     // Initialize Firebase with better error handling
     function initializeFirebase() {
       try {
-        // First try to use the existing Firebase app from fireatt.js
+        // Check if Firebase is already initialized from fireatt.js
         if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
           db = firebase.firestore();
           firebaseInitialized = true;
-          console.log('Firebase initialized successfully from existing app');
+          console.log('Firebase initialized successfully from fireatt.js');
           return true;
         }
         
-        // If fireatt.js didn't initialize, try to initialize here
-        if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-          firebase.initializeApp(firebaseConfig);
-          db = firebase.firestore();
-          firebaseInitialized = true;
-          console.log('Firebase initialized with inline config');
-          return true;
-        }
-        
-        throw new Error('No Firebase configuration available');
+        // If fireatt.js didn't initialize Firebase, we'll use local data
+        console.log('Firebase not initialized in fireatt.js, using local data');
+        return false;
         
       } catch (error) {
         console.error('Firebase initialization error:', error);
@@ -943,22 +927,18 @@
     async function init() {
       setupEventListeners();
       
-      // Initialize Firebase with better error handling
-      try {
-        firebaseInitialized = initializeFirebase();
+      // Initialize Firebase
+      firebaseInitialized = initializeFirebase();
+      
+      if (firebaseInitialized && db) {
+        // Update status indicator
+        elements.firebaseStatus.className = 'firebase-status firebase-connected';
+        elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Connected to Firebase';
         
-        if (firebaseInitialized && db) {
-          // Update status indicator
-          elements.firebaseStatus.className = 'firebase-status firebase-connected';
-          elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Connected to Firebase';
-          
-          await loadDataFromFirebase();
-          setupRealtimeUpdates();
-          showNotification('Firebase Connected', 'Successfully connected to database', 'success', 3000);
-        } else {
-          throw new Error('Firebase not available');
-        }
-      } catch (error) {
+        await loadDataFromFirebase();
+        setupRealtimeUpdates();
+        showNotification('Firebase Connected', 'Successfully connected to database', 'success', 3000);
+      } else {
         // Use local data
         elements.firebaseStatus.className = 'firebase-status firebase-disconnected';
         elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Using Local Data';
@@ -1092,12 +1072,8 @@
         await db.collection('attendanceAdjustments').doc(id).update(updates);
       } catch (error) {
         console.error('Error updating record in Firebase:', error);
-        // Don't show notification for every error to avoid spam
       }
     }
-
-    // [Rest of the functions remain the same as previous version...]
-    // Setup event listeners, notification system, filter functions, render functions, etc.
 
     // Setup event listeners
     function setupEventListeners() {
