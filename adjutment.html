@@ -412,6 +412,28 @@
       background: #5a6268;
     }
 
+    .action-comment.has-comments {
+      background: var(--danger);
+      color: white;
+      animation: pulse 2s infinite;
+    }
+
+    .action-comment.has-comments:hover {
+      background: #c82333;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+      }
+    }
+
     .empty-state {
       text-align: center;
       padding: 30px 15px;
@@ -797,7 +819,8 @@
         reason: "Sick Leave", 
         remarks: "Fever and cold", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true // Track if comments have been read
       },
       { 
         id: "2",
@@ -807,7 +830,8 @@
         reason: "No Out Card", 
         remarks: "Forgot to punch out", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true
       },
       { 
         id: "3",
@@ -817,7 +841,8 @@
         reason: "Duty Change", 
         remarks: "Shift changed to night", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true
       },
       { 
         id: "4",
@@ -827,7 +852,8 @@
         reason: "Training", 
         remarks: "External training session", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true
       },
       { 
         id: "5",
@@ -837,7 +863,8 @@
         reason: "Personal Leave", 
         remarks: "Family function", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true
       },
       { 
         id: "6",
@@ -847,7 +874,8 @@
         reason: "Sick Leave", 
         remarks: "Dental appointment", 
         status: "Pending",
-        userComments: []
+        userComments: [],
+        commentsRead: true
       }
     ];
 
@@ -996,6 +1024,11 @@
       }
     }
 
+    // Check if record has unread comments
+    function hasUnreadComments(record) {
+      return record.userComments && record.userComments.length > 0 && !record.commentsRead;
+    }
+
     // Render table with data
     function renderTable() {
       adjustmentBody.innerHTML = '';
@@ -1054,6 +1087,14 @@
           `;
         }
         
+        // Determine comment button class
+        const commentButtonClass = hasUnreadComments(record) ? 
+          'action-comment has-comments' : 'action-comment';
+        
+        const commentButtonText = hasUnreadComments(record) ?
+          `<i class="fas fa-comment"></i> Comment <span style="margin-left: 4px; font-size: 0.7rem;">(${record.userComments.length})</span>` :
+          `<i class="fas fa-comment"></i> Comment`;
+        
         row.innerHTML = `
           <td>${record.name}</td>
           <td>${record.rcno}</td>
@@ -1072,8 +1113,8 @@
           <td>
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
               ${actionButtons}
-              <button class="action-btn action-comment" data-index="${index}">
-                <i class="fas fa-comment"></i> Comment
+              <button class="action-btn ${commentButtonClass}" data-index="${index}">
+                ${commentButtonText}
               </button>
             </div>
           </td>
@@ -1112,6 +1153,15 @@
       const record = filteredRecords[index];
       currentRecordId = record.id;
       
+      // Mark comments as read when modal opens
+      record.commentsRead = true;
+      
+      // Update the main records array as well
+      const mainIndex = records.findIndex(r => r.id === record.id);
+      if (mainIndex !== -1) {
+        records[mainIndex].commentsRead = true;
+      }
+      
       // Clear comment text
       commentText.value = '';
       
@@ -1119,6 +1169,9 @@
       displayCommentHistory(record);
       
       commentModal.style.display = 'flex';
+      
+      // Re-render table to update button color
+      renderTable();
     }
 
     // Display comment history
@@ -1169,6 +1222,9 @@
             user: "Current User" // In real app, this would be the logged in user
           });
           
+          // Mark as unread for other users
+          record.commentsRead = false;
+          
           // Update the main records array as well
           const mainIndex = records.findIndex(r => 
             r.id === record.id
@@ -1176,11 +1232,13 @@
           
           if (mainIndex !== -1) {
             records[mainIndex].userComments = record.userComments;
+            records[mainIndex].commentsRead = false;
             
             // Update in Firebase if connected
             if (typeof db !== 'undefined' && db) {
               updateRecordInFirebase(record.id, {
-                userComments: record.userComments
+                userComments: record.userComments,
+                commentsRead: false
               });
             }
           }
@@ -1334,7 +1392,7 @@
       setTimeout(() => {
         showNotification(
           'Welcome!', 
-          'You can now add comments to attendance records. Notifications will appear here.',
+          'You can now add comments to attendance records. Comment buttons will turn red when there are unread comments.',
           'info',
           6000
         );
