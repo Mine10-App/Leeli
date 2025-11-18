@@ -9,7 +9,6 @@
   <script src="fireatt.js"></script>
   <script src="view.js" defer></script>
   <style>
-    /* Your existing CSS styles remain the same */
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -515,6 +514,98 @@
       margin-top: 5px;
     }
 
+    /* Notification Styles */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1001;
+      max-width: 350px;
+    }
+
+    .notification {
+      background: white;
+      border-radius: var(--radius);
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid var(--primary);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transform: translateX(400px);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .notification.hide {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+
+    .notification-icon {
+      font-size: 1.2rem;
+      margin-top: 2px;
+    }
+
+    .notification-success {
+      border-left-color: var(--success);
+    }
+
+    .notification-success .notification-icon {
+      color: var(--success);
+    }
+
+    .notification-warning {
+      border-left-color: var(--warning);
+    }
+
+    .notification-warning .notification-icon {
+      color: var(--warning);
+    }
+
+    .notification-info {
+      border-left-color: var(--primary);
+    }
+
+    .notification-info .notification-icon {
+      color: var(--primary);
+    }
+
+    .notification-content {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    .notification-message {
+      font-size: 0.85rem;
+      color: var(--secondary);
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: var(--secondary);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 992px) {
       .dashboard {
@@ -523,6 +614,10 @@
       
       .filter-box {
         grid-template-columns: 1fr;
+      }
+      
+      .notification-container {
+        max-width: 300px;
       }
     }
 
@@ -539,10 +634,20 @@
       .dashboard {
         grid-template-columns: 1fr;
       }
+      
+      .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Notification Container -->
+  <div class="notification-container" id="notificationContainer"></div>
+
   <div class="container">
     <header>
       <h1>Attendance Adjustment Records</h1>
@@ -769,11 +874,70 @@
     const cancelComment = document.getElementById('cancelComment');
     const closeModal = document.querySelector('.close-modal');
 
+    // Notification elements
+    const notificationContainer = document.getElementById('notificationContainer');
+
     // Initialize with sample data
     let records = [...sampleData];
     let filteredRecords = [...records];
     let currentCommentIndex = -1;
     let currentRecordId = null;
+
+    // Notification system
+    function showNotification(title, message, type = 'info', duration = 5000) {
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      
+      const icon = type === 'success' ? 'fa-check-circle' : 
+                   type === 'warning' ? 'fa-exclamation-triangle' : 
+                   'fa-info-circle';
+      
+      notification.innerHTML = `
+        <div class="notification-icon">
+          <i class="fas ${icon}"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      notificationContainer.appendChild(notification);
+      
+      // Trigger animation
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 10);
+      
+      // Close button event
+      const closeBtn = notification.querySelector('.notification-close');
+      closeBtn.addEventListener('click', () => {
+        closeNotification(notification);
+      });
+      
+      // Auto-close after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          closeNotification(notification);
+        }, duration);
+      }
+      
+      return notification;
+    }
+    
+    function closeNotification(notification) {
+      notification.classList.remove('show');
+      notification.classList.add('hide');
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
 
     // Apply filters
     btnFilter.addEventListener('click', function() {
@@ -805,6 +969,8 @@
       filterReason.value = '';
       filteredRecords = [...records];
       renderTable();
+      
+      showNotification('Filters Reset', 'All filters have been cleared', 'info', 3000);
     });
 
     // Get reason badge class
@@ -1020,10 +1186,12 @@
           }
           
           // If comment contains keywords, update status
+          let statusChanged = false;
           if (newComment.toLowerCase().includes('mc needed') || 
               newComment.toLowerCase().includes('document') ||
               newComment.toLowerCase().includes('action required')) {
             record.status = 'Action Required';
+            statusChanged = true;
             if (mainIndex !== -1) {
               records[mainIndex].status = 'Action Required';
               if (typeof db !== 'undefined' && db) {
@@ -1034,11 +1202,22 @@
             }
           }
           
+          // Show notification
+          const notificationTitle = statusChanged ? 
+            'Comment Added & Status Updated' : 
+            'Comment Added Successfully';
+          
+          const notificationMessage = statusChanged ?
+            `Comment added to ${record.name}'s request. Status changed to "Action Required".` :
+            `Comment added to ${record.name}'s request.`;
+          
+          showNotification(notificationTitle, notificationMessage, 'success', 5000);
+          
           updateStats();
           renderTable();
           closeCommentModal();
         } else {
-          alert('Please enter a comment before saving.');
+          showNotification('Comment Required', 'Please enter a comment before saving.', 'warning', 4000);
         }
       }
     });
@@ -1050,10 +1229,10 @@
     // Mark record as applied
     function markAsApplied(index) {
       if (confirm('Are you sure you want to mark this request as applied?')) {
-        filteredRecords[index].status = 'Applied';
+        const record = filteredRecords[index];
+        record.status = 'Applied';
         
         // Update the main records array as well
-        const record = filteredRecords[index];
         const mainIndex = records.findIndex(r => 
           r.id === record.id
         );
@@ -1069,6 +1248,14 @@
           }
         }
         
+        // Show notification
+        showNotification(
+          'Request Applied', 
+          `${record.name}'s attendance adjustment has been marked as applied.`,
+          'success',
+          4000
+        );
+        
         updateStats();
         renderTable();
       }
@@ -1077,10 +1264,10 @@
     // Send to HR
     function sendToHR(index) {
       if (confirm('Are you sure you want to send this request to HR for processing?')) {
-        filteredRecords[index].status = 'Sent to HR';
+        const record = filteredRecords[index];
+        record.status = 'Sent to HR';
         
         // Update the main records array as well
-        const record = filteredRecords[index];
         const mainIndex = records.findIndex(r => 
           r.id === record.id
         );
@@ -1096,6 +1283,14 @@
           }
         }
         
+        // Show notification
+        showNotification(
+          'Sent to HR', 
+          `${record.name}'s request has been sent to HR department.`,
+          'info',
+          4000
+        );
+        
         updateStats();
         renderTable();
       }
@@ -1110,6 +1305,12 @@
           })
           .catch((error) => {
             console.error('Error updating record in Firebase: ', error);
+            showNotification(
+              'Firebase Error', 
+              'Failed to update record in database. Changes saved locally only.',
+              'warning',
+              5000
+            );
           });
       } else {
         console.log('Firebase not connected or missing ID, using local data only');
@@ -1128,6 +1329,16 @@
     function init() {
       updateStats();
       renderTable();
+      
+      // Show welcome notification
+      setTimeout(() => {
+        showNotification(
+          'Welcome!', 
+          'You can now add comments to attendance records. Notifications will appear here.',
+          'info',
+          6000
+        );
+      }, 1000);
     }
 
     // Start the application
