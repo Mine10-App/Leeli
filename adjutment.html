@@ -840,7 +840,7 @@
         date: "2023-10-17", 
         reason: "Duty Change", 
         remarks: "Shift changed to night", 
-        status: "Pending",
+        status: "Applied",
         userComments: [],
         commentsRead: true
       },
@@ -851,7 +851,7 @@
         date: "2023-10-18", 
         reason: "Training", 
         remarks: "External training session", 
-        status: "Pending",
+        status: "Sent to HR",
         userComments: [],
         commentsRead: true
       },
@@ -873,7 +873,7 @@
         date: "2023-10-20", 
         reason: "Sick Leave", 
         remarks: "Dental appointment", 
-        status: "Pending",
+        status: "Action Required",
         userComments: [],
         commentsRead: true
       }
@@ -910,6 +910,9 @@
     let filteredRecords = [...records];
     let currentCommentIndex = -1;
     let currentRecordId = null;
+
+    // Track if we're showing only pending by default
+    let showPendingByDefault = true;
 
     // Notification system
     function showNotification(title, message, type = 'info', duration = 5000) {
@@ -975,15 +978,35 @@
       const statusFilter = filterStatus.value;
       const reasonFilter = filterReason.value;
 
-      filteredRecords = records.filter(record => {
-        return (
-          (dateFilter === '' || record.date === dateFilter) &&
-          (nameFilter === '' || record.name.toLowerCase().includes(nameFilter)) &&
-          (rcFilter === '' || record.rcno.toLowerCase().includes(rcFilter)) &&
-          (statusFilter === '' || record.status === statusFilter) &&
-          (reasonFilter === '' || record.reason === reasonFilter)
-        );
-      });
+      // If status filter is specifically set to "Applied", show only applied
+      // Otherwise, show pending records by default
+      if (statusFilter === 'Applied') {
+        showPendingByDefault = false;
+        filteredRecords = records.filter(record => {
+          return (
+            (dateFilter === '' || record.date === dateFilter) &&
+            (nameFilter === '' || record.name.toLowerCase().includes(nameFilter)) &&
+            (rcFilter === '' || record.rcno.toLowerCase().includes(rcFilter)) &&
+            (record.status === 'Applied') && // Only show Applied
+            (reasonFilter === '' || record.reason === reasonFilter)
+          );
+        });
+      } else {
+        // Show pending records by default, plus any other status if specifically filtered
+        filteredRecords = records.filter(record => {
+          const statusMatch = statusFilter === '' ? 
+            (record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required') : 
+            record.status === statusFilter;
+          
+          return (
+            (dateFilter === '' || record.date === dateFilter) &&
+            (nameFilter === '' || record.name.toLowerCase().includes(nameFilter)) &&
+            (rcFilter === '' || record.rcno.toLowerCase().includes(rcFilter)) &&
+            statusMatch &&
+            (reasonFilter === '' || record.reason === reasonFilter)
+          );
+        });
+      }
 
       renderTable();
     });
@@ -995,10 +1018,13 @@
       filterRC.value = '';
       filterStatus.value = '';
       filterReason.value = '';
-      filteredRecords = [...records];
+      showPendingByDefault = true;
+      filteredRecords = records.filter(record => 
+        record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required'
+      );
       renderTable();
       
-      showNotification('Filters Reset', 'All filters have been cleared', 'info', 3000);
+      showNotification('Filters Reset', 'Showing pending records by default', 'info', 3000);
     });
 
     // Get reason badge class
@@ -1385,6 +1411,12 @@
 
     // Initialize the application
     function init() {
+      // Set default filter to show pending records
+      showPendingByDefault = true;
+      filteredRecords = records.filter(record => 
+        record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required'
+      );
+      
       updateStats();
       renderTable();
       
@@ -1392,7 +1424,7 @@
       setTimeout(() => {
         showNotification(
           'Welcome!', 
-          'You can now add comments to attendance records. Comment buttons will turn red when there are unread comments.',
+          'Showing pending records by default. Use status filter to view applied records.',
           'info',
           6000
         );
