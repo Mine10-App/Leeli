@@ -413,13 +413,13 @@
     }
 
     .action-comment.has-comments {
-      background: var(--danger);
+      background: var(--danger) !important;
       color: white;
       animation: pulse 2s infinite;
     }
 
     .action-comment.has-comments:hover {
-      background: #c82333;
+      background: #c82333 !important;
     }
 
     @keyframes pulse {
@@ -907,12 +907,9 @@
 
     // Initialize with sample data
     let records = [...sampleData];
-    let filteredRecords = [...records];
+    let filteredRecords = [];
     let currentCommentIndex = -1;
     let currentRecordId = null;
-
-    // Track if we're showing only pending by default
-    let showPendingByDefault = true;
 
     // Notification system
     function showNotification(title, message, type = 'info', duration = 5000) {
@@ -972,6 +969,23 @@
 
     // Apply filters
     btnFilter.addEventListener('click', function() {
+      applyFilters();
+    });
+
+    // Reset filters
+    btnReset.addEventListener('click', function() {
+      filterDate.value = '';
+      filterName.value = '';
+      filterRC.value = '';
+      filterStatus.value = '';
+      filterReason.value = '';
+      applyFilters();
+      
+      showNotification('Filters Reset', 'Showing pending records by default', 'info', 3000);
+    });
+
+    // Apply filters function
+    function applyFilters() {
       const dateFilter = filterDate.value;
       const nameFilter = filterName.value.toLowerCase();
       const rcFilter = filterRC.value.toLowerCase();
@@ -979,9 +993,8 @@
       const reasonFilter = filterReason.value;
 
       // If status filter is specifically set to "Applied", show only applied
-      // Otherwise, show pending records by default
+      // Otherwise, hide applied records and show others
       if (statusFilter === 'Applied') {
-        showPendingByDefault = false;
         filteredRecords = records.filter(record => {
           return (
             (dateFilter === '' || record.date === dateFilter) &&
@@ -992,10 +1005,10 @@
           );
         });
       } else {
-        // Show pending records by default, plus any other status if specifically filtered
+        // Hide Applied records by default, show others
         filteredRecords = records.filter(record => {
           const statusMatch = statusFilter === '' ? 
-            (record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required') : 
+            (record.status !== 'Applied') : // Hide Applied when no status filter
             record.status === statusFilter;
           
           return (
@@ -1009,23 +1022,7 @@
       }
 
       renderTable();
-    });
-
-    // Reset filters
-    btnReset.addEventListener('click', function() {
-      filterDate.value = '';
-      filterName.value = '';
-      filterRC.value = '';
-      filterStatus.value = '';
-      filterReason.value = '';
-      showPendingByDefault = true;
-      filteredRecords = records.filter(record => 
-        record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required'
-      );
-      renderTable();
-      
-      showNotification('Filters Reset', 'Showing pending records by default', 'info', 3000);
-    });
+    }
 
     // Get reason badge class
     function getReasonClass(reason) {
@@ -1113,7 +1110,7 @@
           `;
         }
         
-        // Determine comment button class
+        // Determine comment button class - FIXED: Use !important in CSS
         const commentButtonClass = hasUnreadComments(record) ? 
           'action-comment has-comments' : 'action-comment';
         
@@ -1341,7 +1338,7 @@
         );
         
         updateStats();
-        renderTable();
+        applyFilters(); // Re-apply filters to hide the applied record
       }
     }
 
@@ -1411,14 +1408,9 @@
 
     // Initialize the application
     function init() {
-      // Set default filter to show pending records
-      showPendingByDefault = true;
-      filteredRecords = records.filter(record => 
-        record.status === 'Pending' || record.status === 'Sent to HR' || record.status === 'Action Required'
-      );
-      
+      // Apply default filters (hide Applied records)
+      applyFilters();
       updateStats();
-      renderTable();
       
       // Show welcome notification
       setTimeout(() => {
