@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Attendance Adjustment Viewer</title>
+  <title>Attendance Adjustment Records</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="fireatt.js"></script>
-  <script src="view.js" defer></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -514,6 +513,28 @@
       margin-top: 5px;
     }
 
+    /* Firebase Status */
+    .firebase-status {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 0.7rem;
+      font-weight: 600;
+      z-index: 1000;
+    }
+
+    .firebase-connected {
+      background: var(--success);
+      color: white;
+    }
+
+    .firebase-disconnected {
+      background: var(--danger);
+      color: white;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 992px) {
       .dashboard {
@@ -542,6 +563,11 @@
   </style>
 </head>
 <body>
+  <!-- Firebase Status Indicator -->
+  <div class="firebase-status firebase-disconnected" id="firebaseStatus">
+    <i class="fas fa-plug"></i> Connecting...
+  </div>
+
   <div class="container">
     <header>
       <h1>Attendance Adjustment Records</h1>
@@ -639,7 +665,6 @@
             </tr>
           </thead>
           <tbody id="adjustmentBody">
-            <!-- Data will be populated here -->
             <tr>
               <td colspan="7" class="empty-state">
                 <i class="fas fa-inbox"></i>
@@ -670,7 +695,6 @@
         </div>
         <div class="comments-history" id="commentHistory">
           <h4>Comment History</h4>
-          <!-- Previous comments will be displayed here -->
         </div>
       </div>
       <div class="modal-footer">
@@ -681,9 +705,51 @@
   </div>
 
   <script>
-    // Sample data for demonstration with different reasons
+    // Firebase configuration and initialization
+    let db = null;
+    let firebaseInitialized = false;
+
+    // Initialize Firebase - Using your existing cardApp from fireatt.js
+    function initializeFirebase() {
+      try {
+        // Wait for fireatt.js to load and initialize Firebase
+        setTimeout(() => {
+          if (typeof cardDb !== 'undefined' && cardDb) {
+            db = cardDb;
+            firebaseInitialized = true;
+            console.log('✅ Firebase initialized successfully from cardDb');
+            
+            // Update status indicator
+            document.getElementById('firebaseStatus').className = 'firebase-status firebase-connected';
+            document.getElementById('firebaseStatus').innerHTML = '<i class="fas fa-plug"></i> Connected to Firebase';
+            
+            // Load data and setup real-time updates
+            loadDataFromFirebase();
+            setupRealtimeUpdates();
+          } else {
+            console.error('❌ cardDb not available from fireatt.js');
+            handleFirebaseError();
+          }
+        }, 1000);
+        
+      } catch (error) {
+        console.error('Firebase initialization error:', error);
+        handleFirebaseError();
+      }
+    }
+
+    function handleFirebaseError() {
+      document.getElementById('firebaseStatus').className = 'firebase-status firebase-disconnected';
+      document.getElementById('firebaseStatus').innerHTML = '<i class="fas fa-plug"></i> Using Sample Data';
+      
+      // Use sample data if Firebase fails
+      useSampleData();
+    }
+
+    // Sample data for demonstration
     const sampleData = [
       { 
+        id: "1",
         name: "John Doe", 
         rcno: "RC001", 
         date: "2023-10-15", 
@@ -693,6 +759,7 @@
         userComments: []
       },
       { 
+        id: "2",
         name: "Jane Smith", 
         rcno: "RC002", 
         date: "2023-10-16", 
@@ -702,6 +769,7 @@
         userComments: []
       },
       { 
+        id: "3",
         name: "Robert Johnson", 
         rcno: "RC003", 
         date: "2023-10-17", 
@@ -711,6 +779,7 @@
         userComments: []
       },
       { 
+        id: "4",
         name: "Emily Davis", 
         rcno: "RC004", 
         date: "2023-10-18", 
@@ -720,6 +789,7 @@
         userComments: []
       },
       { 
+        id: "5",
         name: "Michael Wilson", 
         rcno: "RC005", 
         date: "2023-10-19", 
@@ -727,112 +797,238 @@
         remarks: "Family function", 
         status: "Pending",
         userComments: []
-      },
-      { 
-        name: "Sarah Brown", 
-        rcno: "RC006", 
-        date: "2023-10-20", 
-        reason: "Sick Leave", 
-        remarks: "Dental appointment", 
-        status: "Pending",
-        userComments: []
       }
     ];
 
     // DOM elements
-    const filterDate = document.getElementById('filterDate');
-    const filterName = document.getElementById('filterName');
-    const filterRC = document.getElementById('filterRC');
-    const filterStatus = document.getElementById('filterStatus');
-    const filterReason = document.getElementById('filterReason');
-    const btnFilter = document.getElementById('btnFilter');
-    const btnReset = document.getElementById('btnReset');
-    const adjustmentBody = document.getElementById('adjustmentBody');
-    const recordCount = document.getElementById('recordCount');
-    const totalRequests = document.getElementById('totalRequests');
-    const pendingRequests = document.getElementById('pendingRequests');
-    const appliedRequests = document.getElementById('appliedRequests');
-    const sentHrRequests = document.getElementById('sentHrRequests');
-    
-    // Modal elements
-    const commentModal = document.getElementById('commentModal');
-    const commentText = document.getElementById('commentText');
-    const commentHistory = document.getElementById('commentHistory');
-    const saveComment = document.getElementById('saveComment');
-    const cancelComment = document.getElementById('cancelComment');
-    const closeModal = document.querySelector('.close-modal');
+    const elements = {
+      filterDate: document.getElementById('filterDate'),
+      filterName: document.getElementById('filterName'),
+      filterRC: document.getElementById('filterRC'),
+      filterStatus: document.getElementById('filterStatus'),
+      filterReason: document.getElementById('filterReason'),
+      btnFilter: document.getElementById('btnFilter'),
+      btnReset: document.getElementById('btnReset'),
+      adjustmentBody: document.getElementById('adjustmentBody'),
+      recordCount: document.getElementById('recordCount'),
+      totalRequests: document.getElementById('totalRequests'),
+      pendingRequests: document.getElementById('pendingRequests'),
+      appliedRequests: document.getElementById('appliedRequests'),
+      sentHrRequests: document.getElementById('sentHrRequests'),
+      commentModal: document.getElementById('commentModal'),
+      commentText: document.getElementById('commentText'),
+      commentHistory: document.getElementById('commentHistory'),
+      saveComment: document.getElementById('saveComment'),
+      cancelComment: document.getElementById('cancelComment'),
+      closeModal: document.querySelector('.close-modal')
+    };
 
-    // Initialize with sample data
-    let records = [...sampleData];
-    let filteredRecords = [...records];
+    // Application state
+    let records = [];
+    let filteredRecords = [];
     let currentCommentIndex = -1;
+    let currentRecordId = null;
+    let unsubscribeFirestore = null;
 
-    // Apply filters
-    btnFilter.addEventListener('click', function() {
-      const dateFilter = filterDate.value;
-      const nameFilter = filterName.value.toLowerCase();
-      const rcFilter = filterRC.value.toLowerCase();
-      const statusFilter = filterStatus.value;
-      const reasonFilter = filterReason.value;
+    // Use sample data
+    function useSampleData() {
+      console.log('📊 Using sample data');
+      records = [...sampleData];
+      filteredRecords = [...records];
+      updateStats();
+      renderTable();
+    }
 
-      filteredRecords = records.filter(record => {
-        return (
-          (dateFilter === '' || record.date === dateFilter) &&
-          (nameFilter === '' || record.name.toLowerCase().includes(nameFilter)) &&
-          (rcFilter === '' || record.rcno.toLowerCase().includes(rcFilter)) &&
-          (statusFilter === '' || record.status === statusFilter) &&
-          (reasonFilter === '' || record.reason === reasonFilter)
-        );
+    // Load data from Firebase
+    async function loadDataFromFirebase() {
+      try {
+        console.log('📥 Loading data from Firebase...');
+        
+        // Clear existing records
+        records = [];
+        
+        // Get data from Firestore
+        const snapshot = await db.collection('attendanceAdjustments').get();
+        
+        console.log(`✅ Found ${snapshot.size} records in Firebase`);
+        
+        if (snapshot.size === 0) {
+          console.log('📝 No records found in Firebase, using sample data');
+          useSampleData();
+          return;
+        }
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          records.push({
+            id: doc.id,
+            name: data.name || 'Unknown',
+            rcno: data.rcno || 'N/A',
+            date: data.date || new Date().toISOString().split('T')[0],
+            reason: data.reason || 'Other',
+            remarks: data.remarks || '',
+            status: data.status || 'Pending',
+            userComments: data.userComments || [],
+            commentsRead: data.commentsRead !== undefined ? data.commentsRead : true,
+            lastCommentCheck: data.lastCommentCheck || null
+          });
+        });
+        
+        // Sort records by date (newest first)
+        records.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        filteredRecords = [...records];
+        updateStats();
+        renderTable();
+        
+      } catch (error) {
+        console.error('❌ Error loading data from Firebase:', error);
+        console.log('📊 Falling back to sample data');
+        useSampleData();
+      }
+    }
+
+    // Setup real-time Firestore updates
+    function setupRealtimeUpdates() {
+      if (!firebaseInitialized || !db) {
+        console.log('Firebase not available for real-time updates');
+        return;
+      }
+      
+      try {
+        console.log('🔄 Setting up real-time Firestore listener...');
+        
+        unsubscribeFirestore = db.collection('attendanceAdjustments')
+          .onSnapshot((snapshot) => {
+            console.log('📡 Real-time update received');
+            
+            let hasChanges = false;
+            records = [];
+            
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              records.push({
+                id: doc.id,
+                name: data.name || 'Unknown',
+                rcno: data.rcno || 'N/A',
+                date: data.date || new Date().toISOString().split('T')[0],
+                reason: data.reason || 'Other',
+                remarks: data.remarks || '',
+                status: data.status || 'Pending',
+                userComments: data.userComments || [],
+                commentsRead: data.commentsRead !== undefined ? data.commentsRead : true,
+                lastCommentCheck: data.lastCommentCheck || null
+              });
+              hasChanges = true;
+            });
+            
+            if (hasChanges) {
+              // Sort records by date (newest first)
+              records.sort((a, b) => new Date(b.date) - new Date(a.date));
+              filteredRecords = [...records];
+              applyFilters();
+              updateStats();
+            }
+            
+          }, (error) => {
+            console.error('Firestore real-time error:', error);
+          });
+          
+      } catch (error) {
+        console.error('Error setting up real-time updates:', error);
+      }
+    }
+
+    // Update record in Firebase
+    async function updateRecordInFirebase(id, updates) {
+      if (!firebaseInitialized || !db) {
+        console.log('Firebase not available for update');
+        return false;
+      }
+      
+      try {
+        updates.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection('attendanceAdjustments').doc(id).update(updates);
+        console.log('✅ Record updated successfully in Firebase');
+        return true;
+      } catch (error) {
+        console.error('❌ Error updating record in Firebase:', error);
+        return false;
+      }
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      elements.btnFilter.addEventListener('click', applyFilters);
+      elements.btnReset.addEventListener('click', resetFilters);
+      elements.saveComment.addEventListener('click', saveCommentHandler);
+      elements.cancelComment.addEventListener('click', closeCommentModal);
+      elements.closeModal.addEventListener('click', closeCommentModal);
+      
+      // Close modal when clicking outside
+      elements.commentModal.addEventListener('click', (e) => {
+        if (e.target === elements.commentModal) {
+          closeCommentModal();
+        }
       });
+      
+      // Add keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeCommentModal();
+        }
+      });
+    }
+
+    // Filter functions
+    function applyFilters() {
+      const filters = {
+        date: elements.filterDate.value,
+        name: elements.filterName.value.toLowerCase(),
+        rc: elements.filterRC.value.toLowerCase(),
+        status: elements.filterStatus.value,
+        reason: elements.filterReason.value
+      };
+
+      filteredRecords = records.filter(record => 
+        matchesFilters(record, filters)
+      );
 
       renderTable();
-    });
+    }
 
-    // Reset filters
-    btnReset.addEventListener('click', function() {
-      filterDate.value = '';
-      filterName.value = '';
-      filterRC.value = '';
-      filterStatus.value = '';
-      filterReason.value = '';
+    function matchesFilters(record, filters) {
+      return (
+        (!filters.date || record.date === filters.date) &&
+        (!filters.name || record.name.toLowerCase().includes(filters.name)) &&
+        (!filters.rc || record.rcno.toLowerCase().includes(filters.rc)) &&
+        (!filters.status || record.status === filters.status) &&
+        (!filters.reason || record.reason === filters.reason)
+      );
+    }
+
+    function resetFilters() {
+      elements.filterDate.value = '';
+      elements.filterName.value = '';
+      elements.filterRC.value = '';
+      elements.filterStatus.value = '';
+      elements.filterReason.value = '';
       filteredRecords = [...records];
       renderTable();
-    });
-
-    // Get reason badge class
-    function getReasonClass(reason) {
-      switch(reason) {
-        case 'Sick Leave': return 'reason-sick-leave';
-        case 'No Out Card': return 'reason-no-out-card';
-        case 'Duty Change': return 'reason-duty-change';
-        case 'Personal Leave': return 'reason-personal';
-        case 'Training': return 'reason-training';
-        default: return 'reason-other';
-      }
     }
 
-    // Get status badge class
-    function getStatusClass(status) {
-      switch(status) {
-        case 'Pending': return 'status-pending';
-        case 'Applied': return 'status-applied';
-        case 'Sent to HR': return 'status-sent-hr';
-        case 'Action Required': return 'status-action-required';
-        default: return 'status-pending';
-      }
-    }
-
-    // Render table with data
+    // Render functions
     function renderTable() {
-      adjustmentBody.innerHTML = '';
-      recordCount.textContent = `(${filteredRecords.length} records)`;
+      elements.adjustmentBody.innerHTML = '';
+      elements.recordCount.textContent = `(${filteredRecords.length} records)`;
 
       if (filteredRecords.length === 0) {
-        adjustmentBody.innerHTML = `
+        elements.adjustmentBody.innerHTML = `
           <tr>
             <td colspan="7" class="empty-state">
               <i class="fas fa-inbox"></i>
               <p>No adjustment records found</p>
+              ${records.length === 0 ? '<p style="font-size: 0.7rem; margin-top: 5px;">Using sample data for demonstration</p>' : ''}
             </td>
           </tr>
         `;
@@ -841,117 +1037,120 @@
 
       filteredRecords.forEach((record, index) => {
         const row = document.createElement('tr');
-        
-        // Determine which buttons to show based on status
-        let actionButtons = '';
-        
-        if (record.status === 'Pending') {
-          actionButtons = `
+        row.innerHTML = createTableRow(record, index);
+        elements.adjustmentBody.appendChild(row);
+      });
+
+      attachRowEventListeners();
+    }
+
+    function createTableRow(record, index) {
+      const actionButtons = getActionButtons(record, index);
+      const commentButton = getCommentButton(record, index);
+      
+      return `
+        <td>${record.name}</td>
+        <td>${record.rcno}</td>
+        <td>${record.date}</td>
+        <td><span class="reason-badge ${getReasonClass(record.reason)}">${record.reason}</span></td>
+        <td>${record.remarks}</td>
+        <td><span class="status-badge ${getStatusClass(record.status)}">${record.status}</span></td>
+        <td>
+          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            ${actionButtons}
+            ${commentButton}
+          </div>
+        </td>
+      `;
+    }
+
+    function getActionButtons(record, index) {
+      switch(record.status) {
+        case 'Pending':
+          return `
             <button class="action-btn action-apply" data-index="${index}">
               <i class="fas fa-check"></i> Apply
             </button>
             <button class="action-btn action-send-hr" data-index="${index}">
-              <i class="fas fa-paper-plane"></i> Send to HR
+              <i class="fas fa-paper-plane"></i> HR
             </button>
           `;
-        } else if (record.status === 'Applied') {
-          actionButtons = `
+        case 'Applied':
+          return `
             <button class="action-btn action-apply" data-index="${index}" style="opacity: 0.6; cursor: not-allowed;">
               <i class="fas fa-check"></i> Applied
             </button>
           `;
-        } else if (record.status === 'Sent to HR') {
-          actionButtons = `
+        case 'Sent to HR':
+          return `
             <button class="action-btn action-apply" data-index="${index}">
               <i class="fas fa-check"></i> Apply
             </button>
             <button class="action-btn action-sent-hr" data-index="${index}">
-              <i class="fas fa-paper-plane"></i> Sent to HR
+              <i class="fas fa-paper-plane"></i> Sent
             </button>
           `;
-        } else if (record.status === 'Action Required') {
-          actionButtons = `
+        case 'Action Required':
+          return `
             <button class="action-btn action-apply" data-index="${index}">
               <i class="fas fa-check"></i> Apply
             </button>
             <button class="action-btn action-send-hr" data-index="${index}">
-              <i class="fas fa-paper-plane"></i> Send to HR
+              <i class="fas fa-paper-plane"></i> HR
             </button>
           `;
-        }
-        
-        row.innerHTML = `
-          <td>${record.name}</td>
-          <td>${record.rcno}</td>
-          <td>${record.date}</td>
-          <td>
-            <span class="reason-badge ${getReasonClass(record.reason)}">
-              ${record.reason}
-            </span>
-          </td>
-          <td>${record.remarks}</td>
-          <td>
-            <span class="status-badge ${getStatusClass(record.status)}">
-              ${record.status}
-            </span>
-          </td>
-          <td>
-            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-              ${actionButtons}
-              <button class="action-btn action-comment" data-index="${index}">
-                <i class="fas fa-comment"></i> Comment
-              </button>
-            </div>
-          </td>
-        `;
-        adjustmentBody.appendChild(row);
+        default:
+          return '';
+      }
+    }
+
+    function getCommentButton(record, index) {
+      const hasComments = record.userComments && record.userComments.length > 0;
+      const commentText = hasComments ? 
+        `<i class="fas fa-comment"></i> Comment (${record.userComments.length})` :
+        `<i class="fas fa-comment"></i> Comment`;
+      
+      return `<button class="action-btn action-comment" data-index="${index}">${commentText}</button>`;
+    }
+
+    function attachRowEventListeners() {
+      document.querySelectorAll('.action-apply:not([style*="opacity"])').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.getAttribute('data-index'));
+          markAsApplied(index);
+        });
       });
 
-      // Add event listeners to action buttons
-      document.querySelectorAll('.action-apply').forEach(button => {
-        if (!button.style.opacity) { // Only add listener if not disabled
-          button.addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            markAsApplied(index);
-          });
-        }
-      });
-
-      document.querySelectorAll('.action-send-hr').forEach(button => {
-        button.addEventListener('click', function() {
-          const index = parseInt(this.getAttribute('data-index'));
+      document.querySelectorAll('.action-send-hr').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.getAttribute('data-index'));
           sendToHR(index);
         });
       });
 
-      document.querySelectorAll('.action-comment').forEach(button => {
-        button.addEventListener('click', function() {
-          const index = parseInt(this.getAttribute('data-index'));
+      document.querySelectorAll('.action-comment').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.getAttribute('data-index'));
           openCommentModal(index);
         });
       });
     }
 
-    // Open comment modal
+    // Comment modal functions
     function openCommentModal(index) {
       currentCommentIndex = index;
       const record = filteredRecords[index];
       
-      // Clear comment text
-      commentText.value = '';
-      
-      // Display comment history
+      elements.commentText.value = '';
       displayCommentHistory(record);
-      
-      commentModal.style.display = 'flex';
+      elements.commentModal.style.display = 'flex';
     }
 
-    // Display comment history
     function displayCommentHistory(record) {
-      commentHistory.innerHTML = '<h4>Comment History</h4>';
+      elements.commentHistory.innerHTML = '<h4>Comment History</h4>';
       
       if (!record.userComments || record.userComments.length === 0) {
-        commentHistory.innerHTML += '<p>No comments yet.</p>';
+        elements.commentHistory.innerHTML += '<p>No comments yet.</p>';
         return;
       }
       
@@ -962,166 +1161,154 @@
           <div><strong>${comment.user || 'User'}:</strong> ${comment.text}</div>
           <div class="comment-date">${new Date(comment.timestamp).toLocaleString()}</div>
         `;
-        commentHistory.appendChild(commentItem);
+        elements.commentHistory.appendChild(commentItem);
       });
     }
 
-    // Close comment modal
     function closeCommentModal() {
-      commentModal.style.display = 'none';
+      elements.commentModal.style.display = 'none';
       currentCommentIndex = -1;
     }
 
-    // Save comment
-    saveComment.addEventListener('click', function() {
-      if (currentCommentIndex !== -1) {
-        const newComment = commentText.value.trim();
+    function saveCommentHandler() {
+      if (currentCommentIndex === -1) return;
+      
+      const comment = elements.commentText.value.trim();
+      if (!comment) {
+        alert('Please enter a comment before saving.');
+        return;
+      }
+      
+      saveComment(comment);
+    }
+
+    function saveComment(commentText) {
+      const record = filteredRecords[currentCommentIndex];
+      const timestamp = new Date().toISOString();
+      
+      if (!record.userComments) record.userComments = [];
+      
+      record.userComments.push({
+        text: commentText,
+        timestamp: timestamp,
+        user: "Current User"
+      });
+      
+      // Update the main records array as well
+      const mainIndex = records.findIndex(r => r.id === record.id);
+      if (mainIndex !== -1) {
+        records[mainIndex].userComments = record.userComments;
         
-        if (newComment) {
-          const record = filteredRecords[currentCommentIndex];
-          const timestamp = new Date().toISOString();
-          
-          // Initialize userComments array if it doesn't exist
-          if (!record.userComments) {
-            record.userComments = [];
-          }
-          
-          // Add new comment
-          record.userComments.push({
-            text: newComment,
-            timestamp: timestamp,
-            user: "Current User" // In real app, this would be the logged in user
+        // Update in Firebase if connected
+        if (firebaseInitialized) {
+          updateRecordInFirebase(record.id, {
+            userComments: record.userComments
           });
-          
-          // Update the main records array as well
-          const mainIndex = records.findIndex(r => 
-            r.name === record.name && 
-            r.rcno === record.rcno && 
-            r.date === record.date
-          );
-          
-          if (mainIndex !== -1) {
-            records[mainIndex].userComments = record.userComments;
-            
-            // Update in Firebase if connected
-            if (typeof db !== 'undefined' && db) {
-              updateRecordInFirebase(record.id, {
-                userComments: record.userComments
-              });
-            }
-          }
-          
-          // If comment contains keywords, update status
-          if (newComment.toLowerCase().includes('mc needed') || 
-              newComment.toLowerCase().includes('document') ||
-              newComment.toLowerCase().includes('action required')) {
-            record.status = 'Action Required';
-            if (mainIndex !== -1) {
-              records[mainIndex].status = 'Action Required';
-              if (typeof db !== 'undefined' && db) {
-                updateRecordInFirebase(record.id, {
-                  status: 'Action Required'
-                });
-              }
-            }
-          }
-          
-          updateStats();
-          renderTable();
-          closeCommentModal();
-        } else {
-          alert('Please enter a comment before saving.');
         }
       }
-    });
+      
+      // If comment contains keywords, update status
+      if (commentText.toLowerCase().includes('mc needed') || 
+          commentText.toLowerCase().includes('document') ||
+          commentText.toLowerCase().includes('action required')) {
+        record.status = 'Action Required';
+        if (mainIndex !== -1) {
+          records[mainIndex].status = 'Action Required';
+          if (firebaseInitialized) {
+            updateRecordInFirebase(record.id, {
+              status: 'Action Required'
+            });
+          }
+        }
+      }
+      
+      updateStats();
+      renderTable();
+      closeCommentModal();
+    }
 
-    // Cancel comment
-    cancelComment.addEventListener('click', closeCommentModal);
-    closeModal.addEventListener('click', closeCommentModal);
-
-    // Mark record as applied
+    // Record actions
     function markAsApplied(index) {
-      if (confirm('Are you sure you want to mark this request as applied?')) {
-        filteredRecords[index].status = 'Applied';
+      if (!confirm('Are you sure you want to mark this request as applied?')) return;
+      
+      const record = filteredRecords[index];
+      record.status = 'Applied';
+      
+      // Update the main records array as well
+      const mainIndex = records.findIndex(r => r.id === record.id);
+      if (mainIndex !== -1) {
+        records[mainIndex].status = 'Applied';
         
-        // Update the main records array as well
-        const record = filteredRecords[index];
-        const mainIndex = records.findIndex(r => 
-          r.name === record.name && 
-          r.rcno === record.rcno && 
-          r.date === record.date
-        );
-        
-        if (mainIndex !== -1) {
-          records[mainIndex].status = 'Applied';
-          
-          // Update in Firebase if connected
-          if (typeof db !== 'undefined' && db) {
-            updateRecordInFirebase(record.id, {
-              status: 'Applied'
-            });
-          }
-        }
-        
-        updateStats();
-        renderTable();
-      }
-    }
-
-    // Send to HR
-    function sendToHR(index) {
-      if (confirm('Are you sure you want to send this request to HR for processing?')) {
-        filteredRecords[index].status = 'Sent to HR';
-        
-        // Update the main records array as well
-        const record = filteredRecords[index];
-        const mainIndex = records.findIndex(r => 
-          r.name === record.name && 
-          r.rcno === record.rcno && 
-          r.date === record.date
-        );
-        
-        if (mainIndex !== -1) {
-          records[mainIndex].status = 'Sent to HR';
-          
-          // Update in Firebase if connected
-          if (typeof db !== 'undefined' && db) {
-            updateRecordInFirebase(record.id, {
-              status: 'Sent to HR'
-            });
-          }
-        }
-        
-        updateStats();
-        renderTable();
-      }
-    }
-
-    // Update record in Firebase
-    function updateRecordInFirebase(id, updates) {
-      if (typeof db !== 'undefined' && db) {
-        db.collection('attendanceAdjustments').doc(id).update(updates)
-          .then(() => {
-            console.log('Record updated successfully in Firebase');
-          })
-          .catch((error) => {
-            console.error('Error updating record in Firebase: ', error);
+        // Update in Firebase if connected
+        if (firebaseInitialized) {
+          updateRecordInFirebase(record.id, {
+            status: 'Applied'
           });
+        }
       }
+      
+      updateStats();
+      renderTable();
     }
 
-    // Update statistics
+    function sendToHR(index) {
+      if (!confirm('Are you sure you want to send this request to HR for processing?')) return;
+      
+      const record = filteredRecords[index];
+      record.status = 'Sent to HR';
+      
+      // Update the main records array as well
+      const mainIndex = records.findIndex(r => r.id === record.id);
+      if (mainIndex !== -1) {
+        records[mainIndex].status = 'Sent to HR';
+        
+        // Update in Firebase if connected
+        if (firebaseInitialized) {
+          updateRecordInFirebase(record.id, {
+            status: 'Sent to HR'
+          });
+        }
+      }
+      
+      updateStats();
+      renderTable();
+    }
+
+    // Utility functions
+    function getReasonClass(reason) {
+      const classMap = {
+        'Sick Leave': 'reason-sick-leave',
+        'No Out Card': 'reason-no-out-card',
+        'No In Card': 'reason-no-out-card',
+        'Duty Change': 'reason-duty-change',
+        'Personal Leave': 'reason-personal',
+        'Training': 'reason-training',
+        'Fine Remove': 'reason-other'
+      };
+      return classMap[reason] || 'reason-other';
+    }
+
+    function getStatusClass(status) {
+      const classMap = {
+        'Pending': 'status-pending',
+        'Applied': 'status-applied',
+        'Sent to HR': 'status-sent-hr',
+        'Action Required': 'status-action-required'
+      };
+      return classMap[status] || 'status-pending';
+    }
+
     function updateStats() {
-      totalRequests.textContent = records.length;
-      pendingRequests.textContent = records.filter(r => r.status === 'Pending').length;
-      sentHrRequests.textContent = records.filter(r => r.status === 'Sent to HR').length;
-      appliedRequests.textContent = records.filter(r => r.status === 'Applied').length;
+      elements.totalRequests.textContent = records.length;
+      elements.pendingRequests.textContent = records.filter(r => r.status === 'Pending').length;
+      elements.sentHrRequests.textContent = records.filter(r => r.status === 'Sent to HR').length;
+      elements.appliedRequests.textContent = records.filter(r => r.status === 'Applied').length;
     }
 
     // Initialize the application
     function init() {
-      updateStats();
-      renderTable();
+      setupEventListeners();
+      initializeFirebase();
     }
 
     // Start the application
