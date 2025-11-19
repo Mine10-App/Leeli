@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="fireatt.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -822,43 +823,53 @@
   </div>
 
   <script>
-    // Firebase configuration - REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "your-api-key-here",
-      authDomain: "your-project-id.firebaseapp.com",
-      projectId: "your-project-id",
-      storageBucket: "your-project-id.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "your-app-id"
-    };
-
     // Firebase configuration and initialization
     let db = null;
     let firebaseInitialized = false;
 
-    // Initialize Firebase
+    // Initialize Firebase - Using your existing cardApp from fireatt.js
     function initializeFirebase() {
       try {
-        // Check if Firebase is already initialized
-        if (typeof firebase !== 'undefined') {
-          // Initialize Firebase if not already initialized
-          if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig, 'attendanceApp');
+        // Wait a moment for fireatt.js to load and initialize Firebase
+        setTimeout(() => {
+          if (typeof cardDb !== 'undefined' && cardDb) {
+            db = cardDb;
+            firebaseInitialized = true;
+            console.log('Firebase initialized successfully from cardDb');
+            
+            // Update status indicator
+            elements.firebaseStatus.className = 'firebase-status firebase-connected';
+            elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Connected to Firebase';
+            
+            // Load data and setup real-time updates
+            loadDataFromFirebase();
+            setupRealtimeUpdates();
+            showNotification('Firebase Connected', 'Successfully connected to database', 'success', 3000);
+          } else {
+            console.error('cardDb not available from fireatt.js');
+            handleFirebaseError();
           }
-          
-          // Get Firestore instance
-          db = firebase.firestore();
-          firebaseInitialized = true;
-          console.log('Firebase initialized successfully');
-          return true;
-        } else {
-          console.error('Firebase SDK not loaded');
-          return false;
-        }
+        }, 1000);
+        
       } catch (error) {
         console.error('Firebase initialization error:', error);
-        return false;
+        handleFirebaseError();
       }
+    }
+
+    function handleFirebaseError() {
+      elements.firebaseStatus.className = 'firebase-status firebase-disconnected';
+      elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Firebase Not Available';
+      
+      showNotification(
+        'Firebase Error', 
+        'Could not connect to Firebase. Please check your configuration.',
+        'warning',
+        5000
+      );
+      
+      // Show empty state
+      renderTable();
     }
 
     // DOM elements
@@ -895,35 +906,11 @@
     let unsubscribeFirestore = null;
 
     // Initialize
-    async function init() {
+    function init() {
       setupEventListeners();
       
-      // Initialize Firebase
-      firebaseInitialized = initializeFirebase();
-      
-      if (firebaseInitialized && db) {
-        // Update status indicator
-        elements.firebaseStatus.className = 'firebase-status firebase-connected';
-        elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Connected to Firebase';
-        
-        await loadDataFromFirebase();
-        setupRealtimeUpdates();
-        showNotification('Firebase Connected', 'Successfully connected to database', 'success', 3000);
-      } else {
-        // Firebase not available
-        elements.firebaseStatus.className = 'firebase-status firebase-disconnected';
-        elements.firebaseStatus.innerHTML = '<i class="fas fa-plug"></i> Firebase Not Available';
-        
-        showNotification(
-          'Firebase Error', 
-          'Could not connect to Firebase. Please check your configuration.',
-          'warning',
-          5000
-        );
-        
-        // Show empty state
-        renderTable();
-      }
+      // Initialize Firebase using your existing configuration
+      initializeFirebase();
       
       startCommentChecker();
     }
