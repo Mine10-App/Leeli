@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="fireatt.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -581,6 +582,28 @@
       transform: translateX(26px);
     }
 
+    /* Alert Styles */
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+    }
+
+    .alert-success {
+      background-color: #d1edff;
+      border: 1px solid #b3d7ff;
+      color: #0c5460;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 992px) {
       .dashboard {
@@ -614,6 +637,11 @@
       <h1>Attendance Adjustment Records</h1>
       <p class="subtitle">View and manage all attendance adjustment requests</p>
     </header>
+
+    <div id="firebaseAlert" class="alert alert-warning" style="display: none;">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span id="alertMessage">Firebase connection issue. Using demo data.</span>
+    </div>
 
     <div class="dashboard">
       <div class="stat-card total-requests">
@@ -755,20 +783,6 @@
   </div>
 
   <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "your-api-key",
-      authDomain: "your-project.firebaseapp.com",
-      projectId: "your-project-id",
-      storageBucket: "your-project.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "your-app-id"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     // DOM elements
     const filterDate = document.getElementById('filterDate');
     const filterName = document.getElementById('filterName');
@@ -784,6 +798,8 @@
     const pendingRequests = document.getElementById('pendingRequests');
     const appliedRequests = document.getElementById('appliedRequests');
     const sentHrRequests = document.getElementById('sentHrRequests');
+    const firebaseAlert = document.getElementById('firebaseAlert');
+    const alertMessage = document.getElementById('alertMessage');
     
     // Modal elements
     const commentModal = document.getElementById('commentModal');
@@ -798,15 +814,75 @@
     let filteredRecords = [];
     let currentCommentDocId = null;
     let currentFilters = {};
+    let usingMockData = false;
+    let db = null;
+
+    // Check if Firebase is available
+    function initializeFirebase() {
+      try {
+        if (window.cardDb) {
+          db = window.cardDb;
+          console.log("✅ Using Firebase from fireatt.js");
+          hideFirebaseAlert();
+          return true;
+        } else {
+          throw new Error("Firebase not initialized in fireatt.js");
+        }
+      } catch (error) {
+        console.error("❌ Firebase initialization error:", error);
+        showFirebaseAlert("Firebase connection issue. Using demo data.");
+        usingMockData = true;
+        return false;
+      }
+    }
+
+    // Mock data for demonstration when Firebase is not available
+    const generateMockData = () => {
+      const names = ["John Doe", "Jane Smith", "Robert Johnson", "Emily Davis", "Michael Wilson", "Sarah Brown", "David Miller", "Lisa Anderson"];
+      const reasons = ["Sick Leave", "No Out Card", "No In Card", "Duty Change", "Personal Leave", "Training", "Fine Remove", "Other"];
+      const statuses = ["Pending", "Applied", "Sent to HR", "Action Required"];
+      
+      const mockData = [];
+      const today = new Date();
+      
+      for (let i = 0; i < 15; i++) {
+        const randomDate = new Date();
+        randomDate.setDate(today.getDate() - Math.floor(Math.random() * 30));
+        
+        const hasComments = Math.random() > 0.7;
+        const userComments = hasComments ? [{
+          text: "Please provide medical certificate",
+          timestamp: new Date().toISOString(),
+          user: "Manager"
+        }] : [];
+
+        mockData.push({
+          id: `mock-${i}`,
+          data: {
+            name: names[Math.floor(Math.random() * names.length)],
+            rcno: `RC${String(i+1).padStart(3, '0')}`,
+            date: randomDate.toISOString().split('T')[0],
+            reason: reasons[Math.floor(Math.random() * reasons.length)],
+            remarks: "Sample remarks for demonstration",
+            status: statuses[Math.floor(Math.random() * statuses.length)],
+            userComments: userComments
+          }
+        });
+      }
+      
+      return mockData;
+    };
 
     // Get reason badge class
     function getReasonClass(reason) {
       switch(reason) {
         case 'Sick Leave': return 'reason-sick-leave';
         case 'No Out Card': return 'reason-no-out-card';
+        case 'No In Card': return 'reason-no-out-card';
         case 'Duty Change': return 'reason-duty-change';
         case 'Personal Leave': return 'reason-personal';
         case 'Training': return 'reason-training';
+        case 'Fine Remove': return 'reason-other';
         default: return 'reason-other';
       }
     }
@@ -820,6 +896,21 @@
         case 'Action Required': return 'status-action-required';
         default: return 'status-pending';
       }
+    }
+
+    // Show/hide Firebase alert
+    function showFirebaseAlert(message, isError = true) {
+      if (isError) {
+        firebaseAlert.className = 'alert alert-warning';
+      } else {
+        firebaseAlert.className = 'alert alert-success';
+      }
+      alertMessage.textContent = message;
+      firebaseAlert.style.display = 'flex';
+    }
+
+    function hideFirebaseAlert() {
+      firebaseAlert.style.display = 'none';
     }
 
     // Open comment modal
@@ -838,8 +929,17 @@
     // Load comment history
     async function loadCommentHistory(docId) {
       try {
-        const doc = await db.collection('attendanceAdjustments').doc(docId).get();
-        const data = doc.data();
+        let data;
+        
+        if (usingMockData) {
+          // For mock data, find the record
+          const record = allRecords.find(r => r.id === docId);
+          data = record ? record.data : {};
+        } else {
+          // For Firebase data
+          const doc = await db.collection('AttendanceAdjustments').doc(docId).get();
+          data = doc.data() || {};
+        }
         
         commentHistory.innerHTML = '<h4>Comment History</h4>';
         
@@ -876,31 +976,52 @@
         
         if (newComment) {
           try {
-            const doc = await db.collection('attendanceAdjustments').doc(currentCommentDocId).get();
-            const currentData = doc.data();
-            
-            // Initialize userComments array if it doesn't exist
-            const userComments = currentData.userComments || [];
-            
-            // Add new comment
-            userComments.push({
-              text: newComment,
-              timestamp: new Date().toISOString(),
-              user: "Current User" // In real app, this would be the logged in user
-            });
-            
-            // Update the document
-            await db.collection('attendanceAdjustments').doc(currentCommentDocId).update({
-              userComments: userComments
-            });
-            
-            // If comment contains keywords, update status
-            if (newComment.toLowerCase().includes('mc needed') || 
-                newComment.toLowerCase().includes('document') ||
-                newComment.toLowerCase().includes('action required')) {
-              await db.collection('attendanceAdjustments').doc(currentCommentDocId).update({
-                status: 'Action Required'
+            if (usingMockData) {
+              // Update mock data
+              const record = allRecords.find(r => r.id === currentCommentDocId);
+              if (record) {
+                if (!record.data.userComments) {
+                  record.data.userComments = [];
+                }
+                record.data.userComments.push({
+                  text: newComment,
+                  timestamp: new Date().toISOString(),
+                  user: "Current User"
+                });
+                
+                // If comment contains keywords, update status
+                if (newComment.toLowerCase().includes('mc needed') || 
+                    newComment.toLowerCase().includes('document') ||
+                    newComment.toLowerCase().includes('action required')) {
+                  record.data.status = 'Action Required';
+                }
+              }
+            } else {
+              // Update Firebase data
+              const doc = await db.collection('AttendanceAdjustments').doc(currentCommentDocId).get();
+              const currentData = doc.data();
+              
+              // Initialize userComments array if it doesn't exist
+              const userComments = currentData.userComments || [];
+              
+              // Add new comment
+              userComments.push({
+                text: newComment,
+                timestamp: new Date().toISOString(),
+                user: "Current User"
               });
+              
+              // Update the document
+              const updateData = { userComments: userComments };
+              
+              // If comment contains keywords, update status
+              if (newComment.toLowerCase().includes('mc needed') || 
+                  newComment.toLowerCase().includes('document') ||
+                  newComment.toLowerCase().includes('action required')) {
+                updateData.status = 'Action Required';
+              }
+              
+              await db.collection('AttendanceAdjustments').doc(currentCommentDocId).update(updateData);
             }
             
             alert('✅ Comment added successfully');
@@ -920,37 +1041,47 @@
     cancelComment.addEventListener('click', closeCommentModal);
     closeModal.addEventListener('click', closeCommentModal);
 
-    // Load records from Firebase
+    // Load records from Firebase or use mock data
     async function loadRecords(filters = {}) {
       adjustmentBody.innerHTML = `<tr><td colspan='7' class="empty-state"><i class="fas fa-inbox"></i><p>⏳ Loading records...</p></td></tr>`;
       
       try {
-        // Get ALL records first (since Firebase doesn't support partial text search)
-        const snapshot = await db.collection('attendanceAdjustments').get();
-        console.log(`📄 Found ${snapshot.size} records total`);
+        if (usingMockData || !db) {
+          // Use mock data
+          allRecords = generateMockData();
+          console.log(`📄 Using ${allRecords.length} mock records`);
+        } else {
+          // Get records from Firebase
+          const snapshot = await db.collection('AttendanceAdjustments').get();
+          console.log(`📄 Found ${snapshot.size} records from Firebase`);
 
-        if (snapshot.empty) {
-          adjustmentBody.innerHTML = `<tr><td colspan='7' class="empty-state"><i class="fas fa-inbox"></i><p>No adjustment records found</p></td></tr>`;
-          recordCount.textContent = '(0 records)';
+          if (snapshot.empty) {
+            adjustmentBody.innerHTML = `<tr><td colspan='7' class="empty-state"><i class="fas fa-inbox"></i><p>No adjustment records found</p></td></tr>`;
+            recordCount.textContent = '(0 records)';
+            allRecords = [];
+            filteredRecords = [];
+            updateStats();
+            return;
+          }
+
+          // Process Firebase records
           allRecords = [];
-          filteredRecords = [];
-          updateStats();
-          return;
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            allRecords.push({ id: doc.id, data: d });
+          });
         }
-
-        // Process records
-        allRecords = [];
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          allRecords.push({ id: doc.id, data: d });
-        });
 
         // Apply filters
         applyFilters(filters);
         
       } catch (err) {
         console.error("❌ Error loading records:", err);
-        adjustmentBody.innerHTML = `<tr><td colspan='7' class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading records — check console</p></td></tr>`;
+        // Fallback to mock data on error
+        usingMockData = true;
+        showFirebaseAlert("Error loading from Firebase. Using demo data.");
+        allRecords = generateMockData();
+        applyFilters(filters);
       }
     }
 
@@ -1115,7 +1246,16 @@
           btn.addEventListener("click", async () => {
             const id = btn.dataset.id;
             if (confirm('Are you sure you want to mark this request as applied?')) {
-              await db.collection('attendanceAdjustments').doc(id).update({ status: "Applied" });
+              if (usingMockData) {
+                // Update mock data
+                const record = allRecords.find(r => r.id === id);
+                if (record) {
+                  record.data.status = "Applied";
+                }
+              } else {
+                // Update Firebase
+                await db.collection('AttendanceAdjustments').doc(id).update({ status: "Applied" });
+              }
               alert("✅ Status updated to Applied");
               loadRecords(currentFilters);
             }
@@ -1127,7 +1267,16 @@
         btn.addEventListener("click", async () => {
           const id = btn.dataset.id;
           if (confirm('Are you sure you want to send this request to HR for processing?')) {
-            await db.collection('attendanceAdjustments').doc(id).update({ status: "Sent to HR" });
+            if (usingMockData) {
+              // Update mock data
+              const record = allRecords.find(r => r.id === id);
+              if (record) {
+                record.data.status = "Sent to HR";
+              }
+            } else {
+              // Update Firebase
+              await db.collection('AttendanceAdjustments').doc(id).update({ status: "Sent to HR" });
+            }
             alert("📤 Record sent to HR");
             loadRecords(currentFilters);
           }
@@ -1162,6 +1311,16 @@
     // Initial load
     window.addEventListener("DOMContentLoaded", () => {
       console.log("🟢 Viewer Page Loaded");
+      
+      // Initialize Firebase
+      const firebaseReady = initializeFirebase();
+      
+      if (firebaseReady) {
+        hideFirebaseAlert();
+      } else {
+        showFirebaseAlert("Firebase not configured. Using demo data.");
+      }
+      
       loadRecords();
     });
 
