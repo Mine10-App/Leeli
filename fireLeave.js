@@ -13,7 +13,9 @@ var cardApp = !firebase.apps.some(app => app.name === "cardApp")
 
 var cardDb = cardApp.firestore();
 console.log("✅ Card Firebase initialized");
-window.cardDb = cardDb; // make global
+window.cardDb = cardDb;
+console.log("🔥 cardDb is now globally available:", window.cardDb);
+
 
 
 
