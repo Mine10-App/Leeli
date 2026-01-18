@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Username Creation</title>
+    <title>Firebase Setup & User Creation</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -24,7 +24,7 @@
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1100px;
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
@@ -42,38 +42,104 @@
 
         .header h1 {
             font-size: 2.5rem;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .header p {
             opacity: 0.9;
         }
 
-        .content {
+        .tabs {
             display: flex;
+            background: #f1f1f1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2575fc;
+            border-bottom: 3px solid #2575fc;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
             min-height: 500px;
         }
 
-        .auth-panel {
-            flex: 1;
-            padding: 40px;
-            border-right: 1px solid #eee;
+        .tab-content.active {
+            display: block;
         }
 
-        .info-panel {
-            flex: 1;
-            padding: 40px;
-            background-color: #f8f9ff;
-        }
-
-        .panel-title {
-            font-size: 1.8rem;
-            color: #2575fc;
+        /* Setup Tab Styles */
+        .setup-steps {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 25px;
             margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
         }
 
+        .setup-step {
+            display: flex;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .step-number {
+            background: #2575fc;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            color: #2575fc;
+            margin-bottom: 5px;
+        }
+
+        .step-content p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .setup-image {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            display: block;
+        }
+
+        /* Create Tab Styles */
         .form-group {
             margin-bottom: 20px;
         }
@@ -101,9 +167,8 @@
         }
 
         .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
+            display: inline-block;
+            padding: 14px 24px;
             border: none;
             border-radius: 10px;
             font-size: 1.1rem;
@@ -111,7 +176,7 @@
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            margin-top: 10px;
+            margin: 5px;
         }
 
         .btn-primary {
@@ -124,15 +189,6 @@
             transform: translateY(-2px);
         }
 
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-
         .btn-success {
             background-color: #28a745;
             color: white;
@@ -142,58 +198,13 @@
             background-color: #218838;
         }
 
-        .auth-toggle {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
         }
 
-        .toggle-link {
-            color: #2575fc;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .toggle-link:hover {
-            text-decoration: underline;
-        }
-
-        .user-info {
-            background-color: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-        }
-
-        .user-info h3 {
-            color: #2575fc;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .user-info h3 i {
-            margin-right: 10px;
-        }
-
-        .user-detail {
-            display: flex;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #eee;
-        }
-
-        .user-detail-label {
-            font-weight: 600;
-            min-width: 120px;
-            color: #555;
-        }
-
-        .user-detail-value {
-            color: #333;
+        .btn-warning:hover {
+            background-color: #e0a800;
         }
 
         .status-message {
@@ -240,23 +251,47 @@
             100% { transform: rotate(360deg); }
         }
 
-        .username-form {
-            margin-top: 30px;
+        .user-info {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
         }
 
-        @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-            }
-            
-            .auth-panel {
-                border-right: none;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
+        .user-detail {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .user-detail-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #555;
+        }
+
+        .user-detail-value {
+            color: #333;
+            word-break: break-all;
+        }
+
+        .users-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .user-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #2575fc;
         }
 
         .firebase-logo {
@@ -265,18 +300,27 @@
             vertical-align: middle;
             margin-right: 5px;
         }
-        
-        .user-count {
-            background: #ff6b6b;
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            margin-left: 10px;
+
+        .test-section {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px dashed #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                margin: 10px;
+            }
         }
     </style>
 </head>
@@ -284,18 +328,115 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-fire firebase-logo"></i> Firebase User Creation</h1>
-            <p>Create users in Firebase Authentication with custom usernames</p>
+            <p>Complete setup guide for Firebase Authentication and Firestore</p>
         </div>
         
-        <div class="content">
-            <!-- Authentication Panel -->
-            <div class="auth-panel">
-                <h2 class="panel-title" id="auth-title">Create New User</h2>
+        <div class="tabs">
+            <div class="tab active" data-tab="setup">Setup Instructions</div>
+            <div class="tab" data-tab="create">Create Users</div>
+            <div class="tab" data-tab="test">Test Connection</div>
+        </div>
+        
+        <!-- Setup Tab -->
+        <div class="tab-content active" id="setup-tab">
+            <h2 class="panel-title">Complete Firebase Setup</h2>
+            
+            <div class="setup-steps">
+                <div class="setup-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Enable Authentication</h3>
+                        <p>Go to Firebase Console → Authentication → Sign-in method → Enable "Email/Password"</p>
+                        <div class="code-block">
+                            Steps:<br>
+                            1. Visit <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a><br>
+                            2. Select your project (leelidc-1f753)<br>
+                            3. Click "Authentication" in left menu<br>
+                            4. Click "Sign-in method" tab<br>
+                            5. Click "Email/Password"<br>
+                            6. Enable it and click "Save"
+                        </div>
+                    </div>
+                </div>
                 
-                <div id="status-message" class="status-message"></div>
+                <div class="setup-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Enable Firestore Database</h3>
+                        <p>Create a Firestore database with proper security rules</p>
+                        <div class="code-block">
+                            Steps:<br>
+                            1. In Firebase Console, click "Firestore Database"<br>
+                            2. Click "Create database"<br>
+                            3. Start in "test mode" (for development)<br>
+                            4. Choose location closest to you<br>
+                            5. Click "Enable"
+                        </div>
+                    </div>
+                </div>
                 
-                <div id="loader" class="loader"></div>
+                <div class="setup-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Set Firestore Security Rules</h3>
+                        <p>Update your Firestore rules to allow read/write access</p>
+                        <div class="code-block">
+                            Go to: Firestore → Rules → Update to:<br><br>
+                            rules_version = '2';<br>
+                            service cloud.firestore {<br>
+                            &nbsp;&nbsp;match /databases/{database}/documents {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;match /users/{userId} {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true; // For testing only<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;}<br>
+                            }<br><br>
+                            <strong>IMPORTANT:</strong> This is for testing only. For production, use proper authentication rules.
+                        </div>
+                    </div>
+                </div>
                 
+                <div class="setup-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Test Your Setup</h3>
+                        <p>Click on the "Test Connection" tab to verify everything is working</p>
+                        <button class="btn btn-primary" onclick="switchTab('test')">
+                            <i class="fas fa-vial"></i> Test Connection Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>Quick Fix for "Insufficient Permissions" Error</h3>
+                <p>If you're getting permission errors, use these temporary rules:</p>
+                <div class="code-block">
+                    // TEMPORARY RULES FOR TESTING:<br>
+                    rules_version = '2';<br>
+                    service cloud.firestore {<br>
+                    &nbsp;&nbsp;match /databases/{database}/documents {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true;<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                    &nbsp;&nbsp;}<br>
+                    }
+                </div>
+                <button class="btn btn-warning" onclick="copyToClipboard('rules_version = \\'2\\';\\nservice cloud.firestore {\\n  match /databases/{database}/documents {\\n    match /{document=**} {\\n      allow read, write: if true;\\n    }\\n  }\\n}')">
+                    <i class="fas fa-copy"></i> Copy Rules to Clipboard
+                </button>
+            </div>
+        </div>
+        
+        <!-- Create Users Tab -->
+        <div class="tab-content" id="create-tab">
+            <h2 class="panel-title">Create Users in Firebase</h2>
+            
+            <div id="status-message" class="status-message"></div>
+            
+            <div id="loader" class="loader"></div>
+            
+            <div class="user-info">
+                <h3>Create New User</h3>
                 <form id="auth-form">
                     <div class="form-group">
                         <label for="displayName">Full Name</label>
@@ -317,77 +458,94 @@
                         <input type="text" id="username" class="form-control" placeholder="Choose a unique username" required>
                     </div>
                     
-                    <button type="submit" id="auth-button" class="btn btn-primary">Create User in Firebase</button>
+                    <button type="submit" id="auth-button" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Create User in Firebase
+                    </button>
                 </form>
-                
-                <div class="auth-toggle">
-                    <p>Already have an account? <a class="toggle-link" id="signin-toggle">Sign In Instead</a></p>
-                </div>
-                
-                <!-- Sign In Form (Initially Hidden) -->
-                <div id="signin-form" style="display: none; margin-top: 30px;">
-                    <h3 class="panel-title">Sign In Existing User</h3>
-                    
-                    <form id="login-form">
-                        <div class="form-group">
-                            <label for="login-email">Email Address</label>
-                            <input type="email" id="login-email" class="form-control" placeholder="Enter your email">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="login-password">Password</label>
-                            <input type="password" id="login-password" class="form-control" placeholder="Enter your password">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-success">Sign In</button>
-                        <button type="button" id="cancel-signin" class="btn btn-secondary">Cancel</button>
-                    </form>
-                </div>
             </div>
             
-            <!-- User Info Panel -->
-            <div class="info-panel">
-                <h2 class="panel-title">User Information <span id="user-count" class="user-count">0</span></h2>
+            <div class="user-info" id="users-list-container" style="display: none;">
+                <h3>Existing Users (<span id="user-count">0</span>)</h3>
+                <div id="users-list" class="users-list">
+                    <!-- Users will be loaded here -->
+                </div>
+                <button id="refresh-users-btn" class="btn btn-success">
+                    <i class="fas fa-sync-alt"></i> Refresh Users List
+                </button>
+            </div>
+            
+            <div class="user-info" id="current-user-info" style="display: none;">
+                <h3>Current Session</h3>
+                <div class="user-detail">
+                    <div class="user-detail-label">Status:</div>
+                    <div class="user-detail-value" id="user-status">Not logged in</div>
+                </div>
+                <div class="user-detail">
+                    <div class="user-detail-label">Email:</div>
+                    <div class="user-detail-value" id="user-email">-</div>
+                </div>
+                <div class="user-detail">
+                    <div class="user-detail-label">Username:</div>
+                    <div class="user-detail-value" id="user-username">-</div>
+                </div>
+                <div class="user-detail">
+                    <div class="user-detail-label">User ID:</div>
+                    <div class="user-detail-value" id="user-uid">-</div>
+                </div>
+                <button id="sign-out-btn" class="btn btn-primary" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div>
+        
+        <!-- Test Connection Tab -->
+        <div class="tab-content" id="test-tab">
+            <h2 class="panel-title">Test Firebase Connection</h2>
+            
+            <div class="user-info">
+                <h3>Connection Tests</h3>
                 
-                <div class="user-info">
-                    <h3><i class="fas fa-user-circle"></i> Current User</h3>
-                    <div class="user-detail">
-                        <div class="user-detail-label">Status:</div>
-                        <div class="user-detail-value" id="user-status">Not logged in</div>
-                    </div>
-                    <div class="user-detail">
-                        <div class="user-detail-label">Email:</div>
-                        <div class="user-detail-value" id="user-email">-</div>
-                    </div>
-                    <div class="user-detail">
-                        <div class="user-detail-label">Username:</div>
-                        <div class="user-detail-value" id="user-username">-</div>
-                    </div>
-                    <div class="user-detail">
-                        <div class="user-detail-label">User ID:</div>
-                        <div class="user-detail-value" id="user-uid">-</div>
-                    </div>
-                    <div class="user-detail">
-                        <div class="user-detail-label">Created:</div>
-                        <div class="user-detail-value" id="user-created">-</div>
-                    </div>
+                <div id="test-status" class="status-message status-info">
+                    Click buttons below to test each component
                 </div>
                 
-                <div style="margin-top: 20px;">
-                    <h3 class="panel-title">All Users in Firebase</h3>
-                    <div id="users-list" style="max-height: 200px; overflow-y: auto; margin-top: 15px;">
-                        <div style="text-align: center; padding: 20px; color: #666;">
-                            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                            Users will appear here after creation
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 30px;">
-                    <button id="sign-out-btn" class="btn btn-secondary" style="display: none;">Sign Out</button>
-                    <button id="refresh-users-btn" class="btn btn-primary" style="margin-top: 10px;">
-                        <i class="fas fa-sync-alt"></i> Refresh Users List
+                <div class="form-group">
+                    <button id="test-auth-btn" class="btn btn-primary">
+                        <i class="fas fa-user-check"></i> Test Authentication
                     </button>
+                    <span id="auth-test-result"></span>
+                </div>
+                
+                <div class="form-group">
+                    <button id="test-firestore-btn" class="btn btn-primary">
+                        <i class="fas fa-database"></i> Test Firestore Connection
+                    </button>
+                    <span id="firestore-test-result"></span>
+                </div>
+                
+                <div class="form-group">
+                    <button id="test-write-btn" class="btn btn-primary">
+                        <i class="fas fa-pen"></i> Test Firestore Write
+                    </button>
+                    <span id="write-test-result"></span>
+                </div>
+                
+                <div class="form-group">
+                    <button id="test-read-btn" class="btn btn-primary">
+                        <i class="fas fa-book"></i> Test Firestore Read
+                    </button>
+                    <span id="read-test-result"></span>
+                </div>
+                
+                <div class="form-group">
+                    <button id="test-all-btn" class="btn btn-success">
+                        <i class="fas fa-play-circle"></i> Run All Tests
+                    </button>
+                </div>
+                
+                <div id="test-results" style="margin-top: 20px; display: none;">
+                    <h4>Test Results:</h4>
+                    <pre id="results-output" style="background: #f5f5f5; padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto;"></pre>
                 </div>
             </div>
         </div>
@@ -403,52 +561,54 @@
     
     <!-- Main Application Script -->
     <script>
-        // Initialize Firebase with your config
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        // Initialize Firebase
+        let app, auth, db;
         
-        // DOM Elements
-        const authForm = document.getElementById('auth-form');
-        const authButton = document.getElementById('auth-button');
-        const authTitle = document.getElementById('auth-title');
-        const signinToggle = document.getElementById('signin-toggle');
-        const signinForm = document.getElementById('signin-form');
-        const loginForm = document.getElementById('login-form');
-        const cancelSignin = document.getElementById('cancel-signin');
-        const statusMessage = document.getElementById('status-message');
-        const loader = document.getElementById('loader');
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+            showStatusMessage(`Firebase Error: ${error.message}`, 'error');
+        }
         
-        // User info elements
-        const userStatus = document.getElementById('user-status');
-        const userEmail = document.getElementById('user-email');
-        const userUsername = document.getElementById('user-username');
-        const userUid = document.getElementById('user-uid');
-        const userCreated = document.getElementById('user-created');
-        const signOutBtn = document.getElementById('sign-out-btn');
-        const usersList = document.getElementById('users-list');
-        const userCount = document.getElementById('user-count');
-        const refreshUsersBtn = document.getElementById('refresh-users-btn');
-        
-        // Show sign in form
-        signinToggle.addEventListener('click', () => {
-            authForm.style.display = 'none';
-            signinToggle.parentElement.style.display = 'none';
-            signinForm.style.display = 'block';
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                switchTab(tabId);
+            });
         });
         
-        // Cancel sign in
-        cancelSignin.addEventListener('click', () => {
-            signinForm.style.display = 'none';
-            authForm.style.display = 'block';
-            signinToggle.parentElement.style.display = 'block';
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-password').value = '';
-        });
+        function switchTab(tabId) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Update active content
+            document.querySelectorAll('.tab-content').forEach(c => {
+                c.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // Load users when switching to create tab
+            if (tabId === 'create') {
+                loadAllUsers();
+            }
+        }
         
-        // Handle user creation form submission
-        authForm.addEventListener('submit', async (e) => {
+        // Create user form
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!auth || !db) {
+                showStatusMessage('Firebase not initialized. Check console for errors.', 'error');
+                return;
+            }
             
             const displayName = document.getElementById('displayName').value;
             const email = document.getElementById('email').value;
@@ -463,12 +623,12 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // 2. Update the user's display name in Authentication
+                // 2. Update display name
                 await user.updateProfile({
                     displayName: displayName
                 });
                 
-                // 3. Store additional user data in Firestore
+                // 3. Store additional data in Firestore
                 await db.collection('users').doc(user.uid).set({
                     uid: user.uid,
                     email: email,
@@ -478,81 +638,64 @@
                     lastLogin: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // 4. Update UI
-                showStatusMessage(`User "${displayName}" created successfully in Firebase Authentication!`, 'success');
+                // 4. Sign in the new user
+                await auth.signInWithEmailAndPassword(email, password);
                 
-                // 5. Clear form
+                showStatusMessage(`✅ User "${displayName}" created successfully!`, 'success');
+                
+                // Clear form
                 document.getElementById('displayName').value = '';
                 document.getElementById('email').value = '';
                 document.getElementById('password').value = '';
                 document.getElementById('username').value = '';
                 
-                // 6. Refresh users list
+                // Refresh users list
                 loadAllUsers();
                 
             } catch (error) {
                 console.error('Error creating user:', error);
-                showStatusMessage(`Error: ${error.message}`, 'error');
+                
+                if (error.code === 'auth/operation-not-allowed') {
+                    showStatusMessage('❌ Email/Password authentication is disabled. Please enable it in Firebase Console.', 'error');
+                } else if (error.code === 'auth/email-already-in-use') {
+                    showStatusMessage('❌ Email already exists. Please use a different email.', 'error');
+                } else if (error.code === 'permission-denied') {
+                    showStatusMessage('❌ Firestore permission denied. Update security rules in Firebase Console.', 'error');
+                } else {
+                    showStatusMessage(`❌ Error: ${error.message}`, 'error');
+                }
             } finally {
                 hideLoader();
             }
         });
         
-        // Handle sign in form submission
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            showLoader();
-            hideStatusMessage();
-            
-            try {
-                // Sign in existing user
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                // Update last login time in Firestore
-                await db.collection('users').doc(user.uid).update({
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                showStatusMessage(`Welcome back, ${user.displayName || user.email}!`, 'success');
-                
-                // Reset form and go back to create user view
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-password').value = '';
-                signinForm.style.display = 'none';
-                authForm.style.display = 'block';
-                signinToggle.parentElement.style.display = 'block';
-                
-            } catch (error) {
-                console.error('Error signing in:', error);
-                showStatusMessage(`Error: ${error.message}`, 'error');
-            } finally {
-                hideLoader();
-            }
-        });
-        
-        // Sign out
-        signOutBtn.addEventListener('click', () => {
-            auth.signOut();
-            showStatusMessage('You have been signed out.', 'info');
-        });
-        
-        // Refresh users list
-        refreshUsersBtn.addEventListener('click', () => {
+        // Refresh users button
+        document.getElementById('refresh-users-btn').addEventListener('click', () => {
             loadAllUsers();
+        });
+        
+        // Sign out button
+        document.getElementById('sign-out-btn').addEventListener('click', () => {
+            auth.signOut();
+            showStatusMessage('Signed out successfully.', 'info');
         });
         
         // Load all users from Firestore
         async function loadAllUsers() {
+            if (!db) {
+                console.error("Firestore not initialized");
+                return;
+            }
+            
             try {
                 const usersSnapshot = await db.collection('users')
                     .orderBy('createdAt', 'desc')
-                    .limit(10)
+                    .limit(20)
                     .get();
+                
+                const usersList = document.getElementById('users-list');
+                const usersListContainer = document.getElementById('users-list-container');
+                const userCount = document.getElementById('user-count');
                 
                 usersList.innerHTML = '';
                 userCount.textContent = usersSnapshot.size;
@@ -561,20 +704,17 @@
                     usersList.innerHTML = `
                         <div style="text-align: center; padding: 20px; color: #666;">
                             <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                            No users found. Create your first user!
+                            No users found. Create your first user above!
                         </div>
                     `;
+                    usersListContainer.style.display = 'block';
                     return;
                 }
                 
                 usersSnapshot.forEach(doc => {
                     const userData = doc.data();
                     const userElement = document.createElement('div');
-                    userElement.className = 'user-detail';
-                    userElement.style.padding = '10px';
-                    userElement.style.marginBottom = '8px';
-                    userElement.style.backgroundColor = '#f9f9f9';
-                    userElement.style.borderRadius = '8px';
+                    userElement.className = 'user-item';
                     
                     const formattedDate = userData.createdAt ? 
                         new Date(userData.createdAt.toDate()).toLocaleDateString() : 'N/A';
@@ -583,11 +723,11 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <strong>${userData.displayName || 'No name'}</strong><br>
-                                <small style="color: #666;">${userData.email} | @${userData.username}</small>
+                                <small style="color: #666;">${userData.email} | @${userData.username || 'no-username'}</small>
                             </div>
                             <div style="text-align: right;">
                                 <small style="color: #999;">${formattedDate}</small><br>
-                                <small style="font-size: 0.8rem; color: #2575fc;">${userData.uid.substring(0, 8)}...</small>
+                                <small style="font-size: 0.8rem; color: #2575fc;">${(userData.uid || '').substring(0, 8)}...</small>
                             </div>
                         </div>
                     `;
@@ -595,59 +735,188 @@
                     usersList.appendChild(userElement);
                 });
                 
+                usersListContainer.style.display = 'block';
+                
             } catch (error) {
                 console.error('Error loading users:', error);
-                usersList.innerHTML = `<div style="color: #dc3545; padding: 10px;">Error loading users: ${error.message}</div>`;
+                const usersList = document.getElementById('users-list');
+                usersList.innerHTML = `
+                    <div style="color: #dc3545; padding: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> Error loading users: ${error.message}
+                        <br><br>
+                        <strong>Solution:</strong><br>
+                        1. Go to Firebase Console → Firestore Database<br>
+                        2. Click "Rules" tab<br>
+                        3. Update rules to allow read/write<br>
+                        4. Click "Publish"
+                    </div>
+                `;
+                document.getElementById('users-list-container').style.display = 'block';
             }
         }
         
         // Auth state observer
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // User is signed in
-                userStatus.textContent = 'Logged in';
-                userStatus.style.color = '#28a745';
-                userEmail.textContent = user.email;
-                userUid.textContent = user.uid;
+        if (auth) {
+            auth.onAuthStateChanged(async (user) => {
+                const currentUserInfo = document.getElementById('current-user-info');
+                const signOutBtn = document.getElementById('sign-out-btn');
                 
-                // Get user data from Firestore
-                try {
-                    const userDoc = await db.collection('users').doc(user.uid).get();
+                if (user) {
+                    // User is signed in
+                    document.getElementById('user-status').textContent = 'Logged in';
+                    document.getElementById('user-status').style.color = '#28a745';
+                    document.getElementById('user-email').textContent = user.email;
+                    document.getElementById('user-uid').textContent = user.uid;
                     
-                    if (userDoc.exists) {
-                        const userData = userDoc.data();
-                        userUsername.textContent = userData.username || '-';
-                        
-                        if (userData.createdAt) {
-                            const createdDate = userData.createdAt.toDate();
-                            userCreated.textContent = createdDate.toLocaleString();
+                    // Get user data from Firestore
+                    try {
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            document.getElementById('user-username').textContent = userData.username || '-';
                         }
+                    } catch (error) {
+                        console.error('Error fetching user data:', error);
                     }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
+                    
+                    signOutBtn.style.display = 'block';
+                    currentUserInfo.style.display = 'block';
+                    
+                } else {
+                    // User is signed out
+                    document.getElementById('user-status').textContent = 'Not logged in';
+                    document.getElementById('user-status').style.color = '#dc3545';
+                    document.getElementById('user-email').textContent = '-';
+                    document.getElementById('user-username').textContent = '-';
+                    document.getElementById('user-uid').textContent = '-';
+                    
+                    signOutBtn.style.display = 'none';
+                    currentUserInfo.style.display = 'block';
+                }
+            });
+        }
+        
+        // Test Connection Tab Functions
+        document.getElementById('test-auth-btn').addEventListener('click', testAuthentication);
+        document.getElementById('test-firestore-btn').addEventListener('click', testFirestoreConnection);
+        document.getElementById('test-write-btn').addEventListener('click', testFirestoreWrite);
+        document.getElementById('test-read-btn').addEventListener('click', testFirestoreRead);
+        document.getElementById('test-all-btn').addEventListener('click', runAllTests);
+        
+        async function testAuthentication() {
+            const resultSpan = document.getElementById('auth-test-result');
+            resultSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            try {
+                // Test Firebase initialization
+                if (!auth) {
+                    throw new Error('Firebase Auth not initialized');
                 }
                 
-                // Show sign out button
-                signOutBtn.style.display = 'block';
+                // Try to list users (admin function - won't work in client)
+                // Just test that auth object is available
+                resultSpan.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check"></i> Authentication available</span>';
+                logTestResult('✅ Authentication: Available');
                 
-                showStatusMessage(`Welcome, ${user.displayName || user.email}!`, 'success');
-                
-            } else {
-                // User is signed out
-                userStatus.textContent = 'Not logged in';
-                userStatus.style.color = '#dc3545';
-                userEmail.textContent = '-';
-                userUsername.textContent = '-';
-                userUid.textContent = '-';
-                userCreated.textContent = '-';
-                
-                // Hide sign out button
-                signOutBtn.style.display = 'none';
+            } catch (error) {
+                resultSpan.innerHTML = `<span style="color: #dc3545;"><i class="fas fa-times"></i> Error: ${error.message}</span>`;
+                logTestResult(`❌ Authentication Error: ${error.message}`);
             }
-        });
+        }
+        
+        async function testFirestoreConnection() {
+            const resultSpan = document.getElementById('firestore-test-result');
+            resultSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            try {
+                if (!db) {
+                    throw new Error('Firestore not initialized');
+                }
+                
+                // Try a simple operation
+                const testRef = db.collection('_test').doc('connection');
+                await testRef.set({ test: true }, { merge: true });
+                await testRef.delete();
+                
+                resultSpan.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check"></i> Connected successfully</span>';
+                logTestResult('✅ Firestore Connection: Successful');
+                
+            } catch (error) {
+                resultSpan.innerHTML = `<span style="color: #dc3545;"><i class="fas fa-times"></i> Error: ${error.message}</span>`;
+                logTestResult(`❌ Firestore Connection Error: ${error.message}`);
+                
+                if (error.code === 'permission-denied') {
+                    logTestResult('⚠️  Solution: Update Firestore security rules to allow read/write');
+                }
+            }
+        }
+        
+        async function testFirestoreWrite() {
+            const resultSpan = document.getElementById('write-test-result');
+            resultSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            try {
+                const testRef = db.collection('test').doc('write-test');
+                const testData = {
+                    message: 'Firestore write test',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    random: Math.random()
+                };
+                
+                await testRef.set(testData);
+                
+                resultSpan.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check"></i> Write successful</span>';
+                logTestResult('✅ Firestore Write: Successful');
+                
+            } catch (error) {
+                resultSpan.innerHTML = `<span style="color: #dc3545;"><i class="fas fa-times"></i> Error: ${error.message}</span>`;
+                logTestResult(`❌ Firestore Write Error: ${error.message}`);
+            }
+        }
+        
+        async function testFirestoreRead() {
+            const resultSpan = document.getElementById('read-test-result');
+            resultSpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            
+            try {
+                const testRef = db.collection('test').doc('write-test');
+                const doc = await testRef.get();
+                
+                if (doc.exists) {
+                    resultSpan.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check"></i> Read successful</span>';
+                    logTestResult('✅ Firestore Read: Successful - Document exists');
+                } else {
+                    resultSpan.innerHTML = '<span style="color: #ffc107;"><i class="fas fa-exclamation"></i> No test data found</span>';
+                    logTestResult('⚠️  Firestore Read: No test data (run write test first)');
+                }
+                
+            } catch (error) {
+                resultSpan.innerHTML = `<span style="color: #dc3545;"><i class="fas fa-times"></i> Error: ${error.message}</span>`;
+                logTestResult(`❌ Firestore Read Error: ${error.message}`);
+            }
+        }
+        
+        async function runAllTests() {
+            document.getElementById('test-results').style.display = 'block';
+            document.getElementById('results-output').textContent = 'Running tests...\n';
+            
+            await testAuthentication();
+            await testFirestoreConnection();
+            await testFirestoreWrite();
+            await testFirestoreRead();
+            
+            logTestResult('\n=== All tests completed ===');
+        }
+        
+        function logTestResult(message) {
+            const output = document.getElementById('results-output');
+            output.textContent += message + '\n';
+            output.scrollTop = output.scrollHeight;
+        }
         
         // Helper functions
         function showStatusMessage(message, type) {
+            const statusMessage = document.getElementById('status-message');
             statusMessage.textContent = message;
             statusMessage.className = 'status-message';
             
@@ -662,34 +931,33 @@
                     statusMessage.classList.add('status-info');
                     break;
             }
-            
-            // Auto hide success messages after 5 seconds
-            if (type === 'success') {
-                setTimeout(hideStatusMessage, 5000);
-            }
         }
         
         function hideStatusMessage() {
-            statusMessage.style.display = 'none';
+            document.getElementById('status-message').style.display = 'none';
         }
         
         function showLoader() {
-            loader.style.display = 'block';
-            authButton.disabled = true;
-            if (signOutBtn) signOutBtn.disabled = true;
-            if (refreshUsersBtn) refreshUsersBtn.disabled = true;
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('auth-button').disabled = true;
         }
         
         function hideLoader() {
-            loader.style.display = 'none';
-            authButton.disabled = false;
-            if (signOutBtn) signOutBtn.disabled = false;
-            if (refreshUsersBtn) refreshUsersBtn.disabled = false;
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('auth-button').disabled = false;
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Rules copied to clipboard! Paste them in Firebase Console → Firestore → Rules');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
         }
         
         // Initialize the page
         window.addEventListener('DOMContentLoaded', () => {
-            showStatusMessage('Ready to create users in Firebase Authentication!', 'info');
+            showStatusMessage('Ready to create Firebase users. Check the Setup tab first.', 'info');
             loadAllUsers();
         });
     </script>
