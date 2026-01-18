@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Username Creation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(to right, #2575fc, #6a11cb);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .auth-panel {
+            flex: 1;
+            padding: 40px;
+            border-right: 1px solid #eee;
+        }
+
+        .info-panel {
+            flex: 1;
+            padding: 40px;
+            background-color: #f8f9ff;
+        }
+
+        .panel-title {
+            font-size: 1.8rem;
+            color: #2575fc;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #2575fc;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.2);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background-color: #2575fc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1c64e0;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .toggle-link {
+            color: #2575fc;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .user-info {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .user-info h3 {
+            color: #2575fc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info h3 i {
+            margin-right: 10px;
+        }
+
+        .user-detail {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .user-detail-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #555;
+        }
+
+        .user-detail-value {
+            color: #333;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2575fc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .username-form {
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .auth-panel {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .firebase-logo {
+            color: #FFCA28;
+            font-size: 1.5rem;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-fire firebase-logo"></i> Firebase Auth & Username</h1>
+            <p>Create an account, set your username, and manage your profile</p>
+        </div>
+        
+        <div class="content">
+            <!-- Authentication Panel -->
+            <div class="auth-panel">
+                <h2 class="panel-title" id="auth-title">Create Account</h2>
+                
+                <div id="status-message" class="status-message"></div>
+                
+                <div id="loader" class="loader"></div>
+                
+                <form id="auth-form">
+                    <div id="name-field" class="form-group" style="display: none;">
+                        <label for="displayName">Full Name</label>
+                        <input type="text" id="displayName" class="form-control" placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter your password (min. 6 characters)" required>
+                    </div>
+                    
+                    <div id="username-field" class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" class="form-control" placeholder="Choose a username" required>
+                    </div>
+                    
+                    <button type="submit" id="auth-button" class="btn btn-primary">Create Account</button>
+                </form>
+                
+                <div class="auth-toggle">
+                    <p id="toggle-text">Already have an account? <a class="toggle-link" id="toggle-auth">Sign In Instead</a></p>
+                </div>
+            </div>
+            
+            <!-- User Info Panel -->
+            <div class="info-panel">
+                <h2 class="panel-title">User Information</h2>
+                
+                <div class="user-info">
+                    <h3><i class="fas fa-user-circle"></i> Current User</h3>
+                    <div class="user-detail">
+                        <div class="user-detail-label">Status:</div>
+                        <div class="user-detail-value" id="user-status">Not logged in</div>
+                    </div>
+                    <div class="user-detail">
+                        <div class="user-detail-label">Email:</div>
+                        <div class="user-detail-value" id="user-email">-</div>
+                    </div>
+                    <div class="user-detail">
+                        <div class="user-detail-label">Username:</div>
+                        <div class="user-detail-value" id="user-username">-</div>
+                    </div>
+                    <div class="user-detail">
+                        <div class="user-detail-label">User ID:</div>
+                        <div class="user-detail-value" id="user-uid">-</div>
+                    </div>
+                </div>
+                
+                <div id="username-update-section" style="display: none;">
+                    <h3 class="panel-title">Update Username</h3>
+                    <div class="username-form">
+                        <div class="form-group">
+                            <label for="new-username">New Username</label>
+                            <input type="text" id="new-username" class="form-control" placeholder="Enter new username">
+                        </div>
+                        <button id="update-username-btn" class="btn btn-success">Update Username</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button id="sign-out-btn" class="btn btn-secondary" style="display: none;">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Your Firebase Config -->
+    <script src="fireDc.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+        // Initialize Firebase with your config
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // DOM Elements
+        const authForm = document.getElementById('auth-form');
+        const authButton = document.getElementById('auth-button');
+        const authTitle = document.getElementById('auth-title');
+        const toggleAuth = document.getElementById('toggle-auth');
+        const toggleText = document.getElementById('toggle-text');
+        const nameField = document.getElementById('name-field');
+        const usernameField = document.getElementById('username-field');
+        const statusMessage = document.getElementById('status-message');
+        const loader = document.getElementById('loader');
+        
+        // User info elements
+        const userStatus = document.getElementById('user-status');
+        const userEmail = document.getElementById('user-email');
+        const userUsername = document.getElementById('user-username');
+        const userUid = document.getElementById('user-uid');
+        const signOutBtn = document.getElementById('sign-out-btn');
+        const usernameUpdateSection = document.getElementById('username-update-section');
+        const updateUsernameBtn = document.getElementById('update-username-btn');
+        const newUsernameInput = document.getElementById('new-username');
+        
+        // State variables
+        let isLoginMode = false;
+        
+        // Toggle between login and signup
+        toggleAuth.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            
+            if (isLoginMode) {
+                authTitle.textContent = 'Sign In';
+                authButton.textContent = 'Sign In';
+                toggleText.innerHTML = 'Don\'t have an account? <a class="toggle-link" id="toggle-auth">Create Account Instead</a>';
+                nameField.style.display = 'none';
+                usernameField.style.display = 'none';
+            } else {
+                authTitle.textContent = 'Create Account';
+                authButton.textContent = 'Create Account';
+                toggleText.innerHTML = 'Already have an account? <a class="toggle-link" id="toggle-auth">Sign In Instead</a>';
+                nameField.style.display = 'block';
+                usernameField.style.display = 'block';
+            }
+            
+            // Clear form
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('displayName').value = '';
+            document.getElementById('username').value = '';
+            hideStatusMessage();
+        });
+        
+        // Handle form submission
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const displayName = document.getElementById('displayName').value;
+            const username = document.getElementById('username').value;
+            
+            showLoader();
+            hideStatusMessage();
+            
+            try {
+                if (isLoginMode) {
+                    // Login existing user
+                    await auth.signInWithEmailAndPassword(email, password);
+                    showStatusMessage('Successfully signed in!', 'success');
+                } else {
+                    // Create new user
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    
+                    // Update display name
+                    await userCredential.user.updateProfile({
+                        displayName: displayName
+                    });
+                    
+                    // Store username in Firestore
+                    await db.collection('users').doc(userCredential.user.uid).set({
+                        email: email,
+                        displayName: displayName,
+                        username: username,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        uid: userCredential.user.uid
+                    });
+                    
+                    showStatusMessage('Account created successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showStatusMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        });
+        
+        // Update username
+        updateUsernameBtn.addEventListener('click', async () => {
+            const newUsername = newUsernameInput.value.trim();
+            
+            if (!newUsername) {
+                showStatusMessage('Please enter a username', 'error');
+                return;
+            }
+            
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            showLoader();
+            
+            try {
+                // Update username in Firestore
+                await db.collection('users').doc(user.uid).update({
+                    username: newUsername
+                });
+                
+                // Update in the UI
+                userUsername.textContent = newUsername;
+                newUsernameInput.value = '';
+                
+                showStatusMessage('Username updated successfully!', 'success');
+            } catch (error) {
+                console.error('Update username error:', error);
+                showStatusMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        });
+        
+        // Sign out
+        signOutBtn.addEventListener('click', () => {
+            auth.signOut();
+            showStatusMessage('You have been signed out.', 'info');
+        });
+        
+        // Auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is signed in
+                userStatus.textContent = 'Logged in';
+                userStatus.style.color = '#28a745';
+                userEmail.textContent = user.email;
+                userUid.textContent = user.uid;
+                
+                // Get user data from Firestore
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    userUsername.textContent = userData.username || '-';
+                    
+                    // Pre-fill the update username field
+                    newUsernameInput.placeholder = userData.username || 'Enter new username';
+                } else {
+                    userUsername.textContent = '-';
+                }
+                
+                // Show sign out button and username update section
+                signOutBtn.style.display = 'block';
+                usernameUpdateSection.style.display = 'block';
+                
+                // Update form for logged in state
+                authForm.style.display = 'none';
+                toggleText.style.display = 'none';
+                authTitle.textContent = 'Welcome Back!';
+                
+                showStatusMessage(`Welcome, ${user.displayName || user.email}!`, 'success');
+            } else {
+                // User is signed out
+                userStatus.textContent = 'Not logged in';
+                userStatus.style.color = '#dc3545';
+                userEmail.textContent = '-';
+                userUsername.textContent = '-';
+                userUid.textContent = '-';
+                
+                // Hide sign out button and username update section
+                signOutBtn.style.display = 'none';
+                usernameUpdateSection.style.display = 'none';
+                
+                // Show auth form
+                authForm.style.display = 'block';
+                toggleText.style.display = 'block';
+                
+                if (isLoginMode) {
+                    authTitle.textContent = 'Sign In';
+                } else {
+                    authTitle.textContent = 'Create Account';
+                }
+            }
+        });
+        
+        // Helper functions
+        function showStatusMessage(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message';
+            
+            switch(type) {
+                case 'success':
+                    statusMessage.classList.add('status-success');
+                    break;
+                case 'error':
+                    statusMessage.classList.add('status-error');
+                    break;
+                case 'info':
+                    statusMessage.classList.add('status-info');
+                    break;
+            }
+            
+            // Auto hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(hideStatusMessage, 5000);
+            }
+        }
+        
+        function hideStatusMessage() {
+            statusMessage.style.display = 'none';
+        }
+        
+        function showLoader() {
+            loader.style.display = 'block';
+            authButton.disabled = true;
+            if (updateUsernameBtn) updateUsernameBtn.disabled = true;
+            if (signOutBtn) signOutBtn.disabled = true;
+        }
+        
+        function hideLoader() {
+            loader.style.display = 'none';
+            authButton.disabled = false;
+            if (updateUsernameBtn) updateUsernameBtn.disabled = false;
+            if (signOutBtn) signOutBtn.disabled = false;
+        }
+        
+        // Initialize the page
+        window.addEventListener('DOMContentLoaded', () => {
+            showStatusMessage('Ready to create an account or sign in.', 'info');
+        });
+    </script>
+</body>
+</html>
