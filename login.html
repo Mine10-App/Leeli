@@ -265,56 +265,89 @@
             vertical-align: middle;
             margin-right: 5px;
         }
+        
+        .user-count {
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1><i class="fas fa-fire firebase-logo"></i> Firebase Auth & Username</h1>
-            <p>Create an account, set your username, and manage your profile</p>
+            <h1><i class="fas fa-fire firebase-logo"></i> Firebase User Creation</h1>
+            <p>Create users in Firebase Authentication with custom usernames</p>
         </div>
         
         <div class="content">
             <!-- Authentication Panel -->
             <div class="auth-panel">
-                <h2 class="panel-title" id="auth-title">Create Account</h2>
+                <h2 class="panel-title" id="auth-title">Create New User</h2>
                 
                 <div id="status-message" class="status-message"></div>
                 
                 <div id="loader" class="loader"></div>
                 
                 <form id="auth-form">
-                    <div id="name-field" class="form-group" style="display: none;">
+                    <div class="form-group">
                         <label for="displayName">Full Name</label>
-                        <input type="text" id="displayName" class="form-control" placeholder="Enter your full name">
+                        <input type="text" id="displayName" class="form-control" placeholder="Enter user's full name" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                        <input type="email" id="email" class="form-control" placeholder="Enter user's email" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" class="form-control" placeholder="Enter your password (min. 6 characters)" required>
+                        <input type="password" id="password" class="form-control" placeholder="Enter password (min. 6 characters)" required minlength="6">
                     </div>
                     
-                    <div id="username-field" class="form-group">
+                    <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" id="username" class="form-control" placeholder="Choose a username" required>
+                        <input type="text" id="username" class="form-control" placeholder="Choose a unique username" required>
                     </div>
                     
-                    <button type="submit" id="auth-button" class="btn btn-primary">Create Account</button>
+                    <button type="submit" id="auth-button" class="btn btn-primary">Create User in Firebase</button>
                 </form>
                 
                 <div class="auth-toggle">
-                    <p id="toggle-text">Already have an account? <a class="toggle-link" id="toggle-auth">Sign In Instead</a></p>
+                    <p>Already have an account? <a class="toggle-link" id="signin-toggle">Sign In Instead</a></p>
+                </div>
+                
+                <!-- Sign In Form (Initially Hidden) -->
+                <div id="signin-form" style="display: none; margin-top: 30px;">
+                    <h3 class="panel-title">Sign In Existing User</h3>
+                    
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">Email Address</label>
+                            <input type="email" id="login-email" class="form-control" placeholder="Enter your email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-control" placeholder="Enter your password">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">Sign In</button>
+                        <button type="button" id="cancel-signin" class="btn btn-secondary">Cancel</button>
+                    </form>
                 </div>
             </div>
             
             <!-- User Info Panel -->
             <div class="info-panel">
-                <h2 class="panel-title">User Information</h2>
+                <h2 class="panel-title">User Information <span id="user-count" class="user-count">0</span></h2>
                 
                 <div class="user-info">
                     <h3><i class="fas fa-user-circle"></i> Current User</h3>
@@ -334,21 +367,27 @@
                         <div class="user-detail-label">User ID:</div>
                         <div class="user-detail-value" id="user-uid">-</div>
                     </div>
+                    <div class="user-detail">
+                        <div class="user-detail-label">Created:</div>
+                        <div class="user-detail-value" id="user-created">-</div>
+                    </div>
                 </div>
                 
-                <div id="username-update-section" style="display: none;">
-                    <h3 class="panel-title">Update Username</h3>
-                    <div class="username-form">
-                        <div class="form-group">
-                            <label for="new-username">New Username</label>
-                            <input type="text" id="new-username" class="form-control" placeholder="Enter new username">
+                <div style="margin-top: 20px;">
+                    <h3 class="panel-title">All Users in Firebase</h3>
+                    <div id="users-list" style="max-height: 200px; overflow-y: auto; margin-top: 15px;">
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            Users will appear here after creation
                         </div>
-                        <button id="update-username-btn" class="btn btn-success">Update Username</button>
                     </div>
                 </div>
                 
                 <div style="margin-top: 30px;">
                     <button id="sign-out-btn" class="btn btn-secondary" style="display: none;">Sign Out</button>
+                    <button id="refresh-users-btn" class="btn btn-primary" style="margin-top: 10px;">
+                        <i class="fas fa-sync-alt"></i> Refresh Users List
+                    </button>
                 </div>
             </div>
         </div>
@@ -373,10 +412,10 @@
         const authForm = document.getElementById('auth-form');
         const authButton = document.getElementById('auth-button');
         const authTitle = document.getElementById('auth-title');
-        const toggleAuth = document.getElementById('toggle-auth');
-        const toggleText = document.getElementById('toggle-text');
-        const nameField = document.getElementById('name-field');
-        const usernameField = document.getElementById('username-field');
+        const signinToggle = document.getElementById('signin-toggle');
+        const signinForm = document.getElementById('signin-form');
+        const loginForm = document.getElementById('login-form');
+        const cancelSignin = document.getElementById('cancel-signin');
         const statusMessage = document.getElementById('status-message');
         const loader = document.getElementById('loader');
         
@@ -385,112 +424,111 @@
         const userEmail = document.getElementById('user-email');
         const userUsername = document.getElementById('user-username');
         const userUid = document.getElementById('user-uid');
+        const userCreated = document.getElementById('user-created');
         const signOutBtn = document.getElementById('sign-out-btn');
-        const usernameUpdateSection = document.getElementById('username-update-section');
-        const updateUsernameBtn = document.getElementById('update-username-btn');
-        const newUsernameInput = document.getElementById('new-username');
+        const usersList = document.getElementById('users-list');
+        const userCount = document.getElementById('user-count');
+        const refreshUsersBtn = document.getElementById('refresh-users-btn');
         
-        // State variables
-        let isLoginMode = false;
-        
-        // Toggle between login and signup
-        toggleAuth.addEventListener('click', () => {
-            isLoginMode = !isLoginMode;
-            
-            if (isLoginMode) {
-                authTitle.textContent = 'Sign In';
-                authButton.textContent = 'Sign In';
-                toggleText.innerHTML = 'Don\'t have an account? <a class="toggle-link" id="toggle-auth">Create Account Instead</a>';
-                nameField.style.display = 'none';
-                usernameField.style.display = 'none';
-            } else {
-                authTitle.textContent = 'Create Account';
-                authButton.textContent = 'Create Account';
-                toggleText.innerHTML = 'Already have an account? <a class="toggle-link" id="toggle-auth">Sign In Instead</a>';
-                nameField.style.display = 'block';
-                usernameField.style.display = 'block';
-            }
-            
-            // Clear form
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('displayName').value = '';
-            document.getElementById('username').value = '';
-            hideStatusMessage();
+        // Show sign in form
+        signinToggle.addEventListener('click', () => {
+            authForm.style.display = 'none';
+            signinToggle.parentElement.style.display = 'none';
+            signinForm.style.display = 'block';
         });
         
-        // Handle form submission
+        // Cancel sign in
+        cancelSignin.addEventListener('click', () => {
+            signinForm.style.display = 'none';
+            authForm.style.display = 'block';
+            signinToggle.parentElement.style.display = 'block';
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+        });
+        
+        // Handle user creation form submission
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const displayName = document.getElementById('displayName').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const displayName = document.getElementById('displayName').value;
             const username = document.getElementById('username').value;
             
             showLoader();
             hideStatusMessage();
             
             try {
-                if (isLoginMode) {
-                    // Login existing user
-                    await auth.signInWithEmailAndPassword(email, password);
-                    showStatusMessage('Successfully signed in!', 'success');
-                } else {
-                    // Create new user
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    
-                    // Update display name
-                    await userCredential.user.updateProfile({
-                        displayName: displayName
-                    });
-                    
-                    // Store username in Firestore
-                    await db.collection('users').doc(userCredential.user.uid).set({
-                        email: email,
-                        displayName: displayName,
-                        username: username,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        uid: userCredential.user.uid
-                    });
-                    
-                    showStatusMessage('Account created successfully!', 'success');
-                }
+                // 1. Create user in Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // 2. Update the user's display name in Authentication
+                await user.updateProfile({
+                    displayName: displayName
+                });
+                
+                // 3. Store additional user data in Firestore
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    email: email,
+                    displayName: displayName,
+                    username: username,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // 4. Update UI
+                showStatusMessage(`User "${displayName}" created successfully in Firebase Authentication!`, 'success');
+                
+                // 5. Clear form
+                document.getElementById('displayName').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('username').value = '';
+                
+                // 6. Refresh users list
+                loadAllUsers();
+                
             } catch (error) {
-                console.error('Auth error:', error);
+                console.error('Error creating user:', error);
                 showStatusMessage(`Error: ${error.message}`, 'error');
             } finally {
                 hideLoader();
             }
         });
         
-        // Update username
-        updateUsernameBtn.addEventListener('click', async () => {
-            const newUsername = newUsernameInput.value.trim();
+        // Handle sign in form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            if (!newUsername) {
-                showStatusMessage('Please enter a username', 'error');
-                return;
-            }
-            
-            const user = auth.currentUser;
-            if (!user) return;
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
             
             showLoader();
+            hideStatusMessage();
             
             try {
-                // Update username in Firestore
+                // Sign in existing user
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Update last login time in Firestore
                 await db.collection('users').doc(user.uid).update({
-                    username: newUsername
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Update in the UI
-                userUsername.textContent = newUsername;
-                newUsernameInput.value = '';
+                showStatusMessage(`Welcome back, ${user.displayName || user.email}!`, 'success');
                 
-                showStatusMessage('Username updated successfully!', 'success');
+                // Reset form and go back to create user view
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                signinForm.style.display = 'none';
+                authForm.style.display = 'block';
+                signinToggle.parentElement.style.display = 'block';
+                
             } catch (error) {
-                console.error('Update username error:', error);
+                console.error('Error signing in:', error);
                 showStatusMessage(`Error: ${error.message}`, 'error');
             } finally {
                 hideLoader();
@@ -503,6 +541,66 @@
             showStatusMessage('You have been signed out.', 'info');
         });
         
+        // Refresh users list
+        refreshUsersBtn.addEventListener('click', () => {
+            loadAllUsers();
+        });
+        
+        // Load all users from Firestore
+        async function loadAllUsers() {
+            try {
+                const usersSnapshot = await db.collection('users')
+                    .orderBy('createdAt', 'desc')
+                    .limit(10)
+                    .get();
+                
+                usersList.innerHTML = '';
+                userCount.textContent = usersSnapshot.size;
+                
+                if (usersSnapshot.empty) {
+                    usersList.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: #666;">
+                            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            No users found. Create your first user!
+                        </div>
+                    `;
+                    return;
+                }
+                
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    const userElement = document.createElement('div');
+                    userElement.className = 'user-detail';
+                    userElement.style.padding = '10px';
+                    userElement.style.marginBottom = '8px';
+                    userElement.style.backgroundColor = '#f9f9f9';
+                    userElement.style.borderRadius = '8px';
+                    
+                    const formattedDate = userData.createdAt ? 
+                        new Date(userData.createdAt.toDate()).toLocaleDateString() : 'N/A';
+                    
+                    userElement.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${userData.displayName || 'No name'}</strong><br>
+                                <small style="color: #666;">${userData.email} | @${userData.username}</small>
+                            </div>
+                            <div style="text-align: right;">
+                                <small style="color: #999;">${formattedDate}</small><br>
+                                <small style="font-size: 0.8rem; color: #2575fc;">${userData.uid.substring(0, 8)}...</small>
+                            </div>
+                        </div>
+                    `;
+                    
+                    usersList.appendChild(userElement);
+                });
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersList.innerHTML = `<div style="color: #dc3545; padding: 10px;">Error loading users: ${error.message}</div>`;
+            }
+        }
+        
         // Auth state observer
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -513,28 +611,27 @@
                 userUid.textContent = user.uid;
                 
                 // Get user data from Firestore
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    userUsername.textContent = userData.username || '-';
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
                     
-                    // Pre-fill the update username field
-                    newUsernameInput.placeholder = userData.username || 'Enter new username';
-                } else {
-                    userUsername.textContent = '-';
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        userUsername.textContent = userData.username || '-';
+                        
+                        if (userData.createdAt) {
+                            const createdDate = userData.createdAt.toDate();
+                            userCreated.textContent = createdDate.toLocaleString();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
                 }
                 
-                // Show sign out button and username update section
+                // Show sign out button
                 signOutBtn.style.display = 'block';
-                usernameUpdateSection.style.display = 'block';
-                
-                // Update form for logged in state
-                authForm.style.display = 'none';
-                toggleText.style.display = 'none';
-                authTitle.textContent = 'Welcome Back!';
                 
                 showStatusMessage(`Welcome, ${user.displayName || user.email}!`, 'success');
+                
             } else {
                 // User is signed out
                 userStatus.textContent = 'Not logged in';
@@ -542,20 +639,10 @@
                 userEmail.textContent = '-';
                 userUsername.textContent = '-';
                 userUid.textContent = '-';
+                userCreated.textContent = '-';
                 
-                // Hide sign out button and username update section
+                // Hide sign out button
                 signOutBtn.style.display = 'none';
-                usernameUpdateSection.style.display = 'none';
-                
-                // Show auth form
-                authForm.style.display = 'block';
-                toggleText.style.display = 'block';
-                
-                if (isLoginMode) {
-                    authTitle.textContent = 'Sign In';
-                } else {
-                    authTitle.textContent = 'Create Account';
-                }
             }
         });
         
@@ -589,20 +676,21 @@
         function showLoader() {
             loader.style.display = 'block';
             authButton.disabled = true;
-            if (updateUsernameBtn) updateUsernameBtn.disabled = true;
             if (signOutBtn) signOutBtn.disabled = true;
+            if (refreshUsersBtn) refreshUsersBtn.disabled = true;
         }
         
         function hideLoader() {
             loader.style.display = 'none';
             authButton.disabled = false;
-            if (updateUsernameBtn) updateUsernameBtn.disabled = false;
             if (signOutBtn) signOutBtn.disabled = false;
+            if (refreshUsersBtn) refreshUsersBtn.disabled = false;
         }
         
         // Initialize the page
         window.addEventListener('DOMContentLoaded', () => {
-            showStatusMessage('Ready to create an account or sign in.', 'info');
+            showStatusMessage('Ready to create users in Firebase Authentication!', 'info');
+            loadAllUsers();
         });
     </script>
 </body>
